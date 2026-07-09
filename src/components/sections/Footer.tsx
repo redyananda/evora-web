@@ -29,7 +29,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           <div className="max-w-md">
             <Link to="/">
-              <img className="w-32" src="./navLogo.webp" alt="Evora logo" />
+              <img className="w-32" src="/navLogo.webp" alt="Evora logo" />
             </Link>
             <p className="mt-5 text-[15px] leading-relaxed text-[#52525b]">
               Empowering event organizers and attendees with seamless discovery

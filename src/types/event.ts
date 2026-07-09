@@ -14,8 +14,12 @@ export interface Event {
     thumbnail: string;
     createdAt: string;
     updatedAt: string;
+    slug: string;
     organizer: {
         organizerName: string;
+        organizerLogo: string;
+        rating: number;
+        totalReviews: number;
     }
 }
 
@@ -38,7 +42,10 @@ export interface Event {
 //             "thumbnail": "https://backendlessappcontent.com/84619254-D580-4979-B385-4B75DA23181F/88DAD701-4EBF-40CE-9B2F-1E6F66575F6A/files/evora/thumbnail/sunrise_yoga.webp",
 //             "createdAt": "2026-07-07T11:09:11.464Z",
 //             "updatedAt": "2026-07-07T11:09:11.464Z",
-//             "organizer": {
-//                 "organizerName": "Seoul Sonic"
-//             }
-//         },
+// //             "organizer": {
+//         "organizerName": "Seoul Sonic",
+//         "organizerLogo": null,
+//         "rating": 0,
+//         "totalReviews": 0
+//     }
+// //         },

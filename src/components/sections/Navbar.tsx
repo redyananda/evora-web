@@ -4,9 +4,9 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navLinks = [
-  { label: "Discover", to: "#discover" },
+  { label: "Discover", to: "/#discover" },
   { label: "Create event", to: "#" },
-  { label: "How it works", to: "#" },
+  { label: "How it works", to: "/how-it-works" },
   { label: "Help", to: "#" },
 ];
 
@@ -18,7 +18,7 @@ const Navbar = () => {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-1 md:px-12 lg:px-16">
         <div className="flex items-center gap-8">
           <Link to="/">
-            <img className="w-32 py-2" src="./navLogo.webp" alt="navbar-logo" />
+            <img className="w-32 py-2" src="/navLogo.webp" alt="navbar-logo" />
           </Link>
           <ul className="hidden items-center gap-8 lg:flex">
             {navLinks.map((link) => (

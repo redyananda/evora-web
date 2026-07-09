@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { ArrowRight, MapPin } from "lucide-react";
 import { useState } from "react";
 import { Ticket } from "lucide-react";
+import { Link } from "react-router";
 import type { PageableResponse } from "@/types/pagination";
 import type { Event } from "@/types/event";
 import GlobalPagination from "@/components/sections/GlobalPagination";
@@ -88,8 +89,9 @@ const UpcomingEventPage = ({ events, isPending, setPage }: GridProps) => {
 
           {!isPending &&
             events?.data.map((event) => (
-              <article
+              <Link
                 key={event.id}
+                to={`/events/${event.slug}`}
                 className="group flex cursor-pointer flex-col overflow-hidden rounded-3xl bg-white shadow-lg shadow-[#6d28d9]/5 ring-1 ring-[#efe7ff] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#6d28d9]/10"
               >
                 <div className="relative h-52 overflow-hidden">
@@ -122,7 +124,7 @@ const UpcomingEventPage = ({ events, isPending, setPage }: GridProps) => {
                     </p>
                   </div>
                 </div>
-              </article>
+              </Link>
             ))}
         </div>
 

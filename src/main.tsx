@@ -11,6 +11,8 @@ import HowItWorks from "./pages/HowItWorks";
 
 const queryClient = new QueryClient();
 
+const queryClient = new QueryClient();
+
 const router = createBrowserRouter([
   {
     path: "/",

@@ -50,13 +50,13 @@ const Navbar = () => {
           {isAuthenticated && user ? (
             <>
               {/* User greeting */}
-              <div className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-[#3f3f46]">
-                <User className="size-4 text-[#6d28d9]" />
+              <Link to="/profile" className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-[#3f3f46] transition-colors hover:bg-white">
+                {user.profilePicture ? <img src={user.profilePicture} alt="" className="size-7 rounded-full object-cover" /> : <User className="size-4 text-[#6d28d9]" />}
                 <span className="font-medium">{user.firstName}</span>
                 <span className="rounded-full bg-[#f3edff] px-2 py-0.5 text-xs font-semibold text-[#6d28d9]">
                   {user.userRole === "ORGANIZER" ? "Organizer" : "Customer"}
                 </span>
-              </div>
+              </Link>
               {/* Referral code badge */}
               {user.referralCode && (
                 <button
@@ -131,13 +131,13 @@ const Navbar = () => {
             {isAuthenticated && user ? (
               <>
                 {/* User info */}
-                <div className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[#3f3f46]">
-                  <User className="size-4 text-[#6d28d9]" />
+                <Link to="/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[#3f3f46] hover:bg-white">
+                  {user.profilePicture ? <img src={user.profilePicture} alt="" className="size-7 rounded-full object-cover" /> : <User className="size-4 text-[#6d28d9]" />}
                   <span className="font-medium">{user.firstName} {user.lastName}</span>
                   <span className="ml-auto rounded-full bg-[#f3edff] px-2 py-0.5 text-xs font-semibold text-[#6d28d9]">
                     {user.userRole === "ORGANIZER" ? "Organizer" : "Customer"}
                   </span>
-                </div>
+                </Link>
                 {/* Referral code */}
                 {user.referralCode && (
                   <button

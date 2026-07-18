@@ -14,6 +14,8 @@ export interface AuthUser {
   referralCode: string | null;
   profilePicture: string | null;
   userPoint: number;
+  phoneNumber?: string | null;
+  address?: string | null;
 }
 
 interface AuthState {
@@ -23,6 +25,7 @@ interface AuthState {
 
   // Actions
   setAuth: (user: AuthUser, token: string) => void;
+  updateUser: (user: AuthUser) => void;
   logout: () => void;
 }
 
@@ -38,6 +41,9 @@ export const useAuthStore = create<AuthState>()(
 
       setAuth: (user, token) =>
         set({ user, token, isAuthenticated: true }),
+
+      updateUser: (user) =>
+        set({ user, isAuthenticated: true }),
 
       logout: () =>
         set({ user: null, token: null, isAuthenticated: false }),

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
-import { useForm } from "react-hook-form";
+import { Link, useNavigate, useSearchParams } from "react-router";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff } from "lucide-react";
@@ -45,6 +45,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Register = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { mutate: register, isPending } = useRegister();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -52,14 +53,17 @@ const Register = () => {
   const {
     register: field,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { role: "CUSTOMER" },
+    defaultValues: {
+      role: "CUSTOMER",
+      referralCode: searchParams.get("ref")?.toUpperCase() ?? "",
+    },
   });
 
-  const selectedRole = watch("role");
+  const selectedRole = useWatch({ control, name: "role" });
 
   const onSubmit = (values: RegisterFormValues) => {
     register(

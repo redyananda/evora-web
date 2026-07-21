@@ -7,14 +7,14 @@ const Unauthorized = () => {
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#f7f1ff] px-4 text-center">
       <ShieldAlert className="size-16 text-[#6d28d9]" />
       <div>
-        <h1 className="text-3xl font-bold text-[#18181b]">Akses Ditolak</h1>
+        <h1 className="text-3xl font-bold text-[#18181b]">Access Denied</h1>
         <p className="mt-2 text-[#71717a]">
-          Anda tidak memiliki izin untuk mengakses halaman ini.
+          You do not have permission to access this page.
         </p>
       </div>
       <Link to="/">
         <Button className="rounded-xl bg-[#6d28d9] px-6 text-white hover:bg-[#5b21b6]">
-          Kembali ke Beranda
+          Back to Home
         </Button>
       </Link>
     </div>

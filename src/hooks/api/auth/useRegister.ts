@@ -19,12 +19,12 @@ export const useRegister = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast.success(data.message ?? "Registrasi berhasil! Silakan masuk.");
+      toast.success(data.message ?? "Registration successful! Please log in.");
     },
     onError: (error: unknown) => {
       const message =
         (error as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Registrasi gagal. Silakan coba lagi.";
+          ?.message ?? "Registration failed. Please try again.";
       toast.error(message);
     },
   });

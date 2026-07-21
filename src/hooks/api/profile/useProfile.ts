@@ -45,7 +45,7 @@ export const useUpdateProfile = () => {
       queryClient.setQueryData(["profile"], data);
       toast.success(message);
     },
-    onError: (error) => toast.error(errorMessage(error, "Profil gagal diperbarui")),
+    onError: (error) => toast.error(errorMessage(error, "Failed to update profile")),
   });
 };
 
@@ -59,5 +59,5 @@ export const useChangePassword = () =>
       return data;
     },
     onSuccess: ({ message }) => toast.success(message),
-    onError: (error) => toast.error(errorMessage(error, "Password gagal diubah")),
+    onError: (error) => toast.error(errorMessage(error, "Failed to change password")),
   });

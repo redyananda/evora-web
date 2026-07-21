@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForgotPassword } from "@/hooks/api/auth/usePasswordReset";
 
-const schema = z.object({ email: z.string().email("Format email tidak valid") });
+const schema = z.object({ email: z.string().email("Invalid email format") });
 type FormValues = z.infer<typeof schema>;
 
 const ForgotPassword = () => {
@@ -29,20 +29,20 @@ const ForgotPassword = () => {
     <div className="flex min-h-screen items-center justify-center bg-[#f7f1ff] px-4 py-12">
       <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-sm">
         <Link to="/login" className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-[#6d28d9]">
-          <ArrowLeft className="size-4" /> Kembali ke login
+          <ArrowLeft className="size-4" /> Back to login
         </Link>
         <span className="mb-5 flex size-12 items-center justify-center rounded-2xl bg-purple-100 text-[#6d28d9]"><KeyRound /></span>
-        <h1 className="text-2xl font-bold text-[#211333]">Lupa password?</h1>
-        <p className="mt-2 text-sm leading-6 text-zinc-500">Masukkan email akun Anda untuk membuat link reset yang berlaku selama 1 jam.</p>
+        <h1 className="text-2xl font-bold text-[#211333]">Forgot your password?</h1>
+        <p className="mt-2 text-sm leading-6 text-zinc-500">Enter your account email to create a reset link that is valid for 1 hour.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-4" noValidate>
           <div>
             <Label htmlFor="email" className="mb-2">Email</Label>
-            <Input id="email" type="email" placeholder="nama@email.com" {...register("email")} />
+            <Input id="email" type="email" placeholder="name@email.com" {...register("email")} />
             {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
           </div>
           <Button type="submit" disabled={forgotPassword.isPending} className="w-full rounded-xl bg-[#6d28d9] py-5 text-white hover:bg-[#5b21b6]">
-            {forgotPassword.isPending && <LoaderCircle className="animate-spin" />} Buat link reset
+            {forgotPassword.isPending && <LoaderCircle className="animate-spin" />} Create reset link
           </Button>
         </form>
 
@@ -50,11 +50,11 @@ const ForgotPassword = () => {
           <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
             {resetToken ? (
               <>
-                <p className="mb-3">Mode pengembangan: token berhasil dibuat.</p>
-                <Link to={`/reset-password?token=${resetToken}`} className="font-bold underline">Lanjut reset password</Link>
+                <p className="mb-3">Development mode: the token was created successfully.</p>
+                <Link to={`/reset-password?token=${resetToken}`} className="font-bold underline">Continue resetting password</Link>
               </>
             ) : (
-              <p>Jika email terdaftar, periksa email Anda untuk melanjutkan.</p>
+              <p>If the email is registered, check your inbox to continue.</p>
             )}
           </div>
         )}
@@ -64,4 +64,3 @@ const ForgotPassword = () => {
 };
 
 export default ForgotPassword;
-

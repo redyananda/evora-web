@@ -21,7 +21,7 @@ export const useForgotPassword = () =>
       return data;
     },
     onSuccess: ({ message }) => toast.success(message),
-    onError: (error) => toast.error(errorMessage(error, "Permintaan reset gagal")),
+    onError: (error) => toast.error(errorMessage(error, "Reset request failed")),
   });
 
 export const useResetPassword = () =>
@@ -34,6 +34,5 @@ export const useResetPassword = () =>
       return data;
     },
     onSuccess: ({ message }) => toast.success(message),
-    onError: (error) => toast.error(errorMessage(error, "Password gagal direset")),
+    onError: (error) => toast.error(errorMessage(error, "Password reset failed")),
   });
-

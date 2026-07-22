@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import Footer from "@/components/sections/Footer";
 import Navbar from "@/components/sections/Navbar";
 import useGetEventBySlug from "@/hooks/api/event/useGetEventBySlug";
+import { useAuthStore } from "@/store/auth.store";
 
 const formatIDR = (value: number) =>
   value === 0 ? "Free" : `IDR ${value.toLocaleString("id-ID")}`;
@@ -47,6 +48,7 @@ const formatTime = (iso: string) =>
 const EventDetails = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: event, isPending, isError } = useGetEventBySlug(slug ?? "");
+  const user = useAuthStore((state) => state.user);
   const [quantity, setQuantity] = useState(1);
 
   if (isPending) {
@@ -295,6 +297,13 @@ const EventDetails = () => {
                   className="mt-5 h-12 w-full rounded-xl bg-[#6d28d9] text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Sold Out
+                </Button>
+              ) : user?.userRole === "ORGANIZER" ? (
+                <Button
+                  disabled
+                  className="mt-5 h-12 w-full rounded-xl bg-[#6d28d9] text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Customer account required
                 </Button>
               ) : (
                 <Link to={`/events/${event.slug}/purchase?tickets=${quantity}`}>

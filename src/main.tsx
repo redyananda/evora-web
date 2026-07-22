@@ -47,7 +47,7 @@ const router = createBrowserRouter([
     lazy: async () => ({ Component: (await import("./pages/ResetPassword")).default }),
   },
   {
-    element: <ProtectedRoute><Outlet /></ProtectedRoute>,
+    element: <ProtectedRoute allowedRoles={["CUSTOMER"]}><Outlet /></ProtectedRoute>,
     children: [
       {
         path: "/events/:slug/purchase",
@@ -57,6 +57,11 @@ const router = createBrowserRouter([
         path: "/events/:slug/payment",
         lazy: async () => ({ Component: (await import("./pages/Payment")).default }),
       },
+    ],
+  },
+  {
+    element: <ProtectedRoute><Outlet /></ProtectedRoute>,
+    children: [
       {
         path: "/profile",
         lazy: async () => ({ Component: (await import("./pages/Profile")).default }),

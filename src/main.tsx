@@ -14,6 +14,7 @@ import HowItWorks from "./pages/HowItWorks";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Unauthorized from "./pages/Unauthorized";
+import CreateEvent from "./pages/CreateEvent";
 
 // Auth guard
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -46,39 +47,15 @@ const router = createBrowserRouter([
     path: "/unauthorized",
     element: <Unauthorized />,
   },
+  {
+    path: "/events/create",
+    element: (
+      <ProtectedRoute allowedRoles={["ORGANIZER", "ADMIN"]}>
+        <CreateEvent />
+      </ProtectedRoute>
+    ),
+  },
 
-  // ── Protected: any authenticated user ────────────────────────────────────
-  // Example: dashboard accessible by both roles
-  // {
-  //   path: "/dashboard",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Dashboard />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-
-  // ── Protected: ORGANIZER only ─────────────────────────────────────────────
-  // Example: create event page
-  // {
-  //   path: "/events/create",
-  //   element: (
-  //     <ProtectedRoute allowedRoles={["ORGANIZER"]}>
-  //       <CreateEvent />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-
-  // ── Protected: CUSTOMER only ──────────────────────────────────────────────
-  // Example: my tickets
-  // {
-  //   path: "/my-tickets",
-  //   element: (
-  //     <ProtectedRoute allowedRoles={["CUSTOMER"]}>
-  //       <MyTickets />
-  //     </ProtectedRoute>
-  //   ),
-  // },
 ]);
 
 createRoot(document.getElementById("root")!).render(

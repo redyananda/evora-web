@@ -7,15 +7,16 @@ import { useQuery } from "@tanstack/react-query";
 interface GetEventsQuery {
     page: number;
     search?: string;
+    category?: string;
 }
 
 
-const useGetEvents = ({page, search}: GetEventsQuery) => {
+const useGetEvents = ({page, search, category}: GetEventsQuery) => {
   return useQuery({
-    queryKey: ["events", page, search],
+    queryKey: ["events", page, search, category],
     queryFn: async() => {
         const { data } = await axiosInstance.get<PageableResponse<Event>>(
-            "/events", {params: {page, search}}
+            "/events", {params: {page, search, category}}
         )
         return data;
     }

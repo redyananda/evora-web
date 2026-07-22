@@ -84,6 +84,14 @@ const router = createBrowserRouter([
     path: "/reset-password",
     element: <ResetPassword />,
   },
+     {
+    path: "/organizer",
+    element: (
+      <ProtectedRoute allowedRoles={["ORGANIZER"]}>
+        <LazyOrganizerDashboard />
+      </ProtectedRoute>
+    ),
+  },
   {
     path: "/profile",
     element: (

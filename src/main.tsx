@@ -64,7 +64,7 @@ const router = createBrowserRouter([
     ],
   },
   {
-    element: <ProtectedRoute allowedRoles={["ORGANIZER", "ADMIN"]}><Outlet /></ProtectedRoute>,
+    element: <ProtectedRoute allowedRoles={["ORGANIZER"]}><Outlet /></ProtectedRoute>,
     children: [
       {
         path: "/events/create",

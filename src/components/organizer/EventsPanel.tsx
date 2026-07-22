@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CalendarDays, Edit3, LoaderCircle, MapPin, Plus, Search, Trash2, Users } from "lucide-react";
+import { CalendarDays, Edit3, LoaderCircle, MapPin, Search, Trash2, Users } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ const EventsPanel = () => {
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [editor, setEditor] = useState<{ open: boolean; event: OrganizerEvent | null }>({ open: false, event: null });
+  const [eventToEdit, setEventToEdit] = useState<OrganizerEvent | null>(null);
   const [eventToDelete, setEventToDelete] = useState<OrganizerEvent | null>(null);
   const { data, isLoading } = useOrganizerEvents(page, search);
   const deleteEvent = useDeleteOrganizerEvent();
@@ -28,13 +28,12 @@ const EventsPanel = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div>
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-purple-600">Event management</p>
           <h2 className="mt-1 font-heading text-3xl font-semibold text-[#211333]">Your events</h2>
-          <p className="mt-1 text-sm text-zinc-500">Create, edit, review sales, and manage event capacity.</p>
+          <p className="mt-1 text-sm text-zinc-500">Edit events, review sales, and manage event capacity.</p>
         </div>
-        <Button onClick={() => setEditor({ open: true, event: null })} className="h-11 rounded-xl bg-[#6d28d9] px-5 text-white hover:bg-[#5b21b6]"><Plus className="size-4" /> Create event</Button>
       </div>
 
       <form onSubmit={(event) => { event.preventDefault(); setPage(1); setSearch(searchInput.trim()); }} className="flex max-w-xl gap-2">
@@ -60,7 +59,7 @@ const EventsPanel = () => {
                       <h3 className="mt-3 truncate font-heading text-xl font-semibold text-[#211333]">{event.eventName}</h3>
                     </div>
                     <div className="flex shrink-0 gap-1">
-                      <button type="button" onClick={() => setEditor({ open: true, event })} className="rounded-lg p-2 text-purple-700 hover:bg-purple-50" aria-label="Edit event"><Edit3 className="size-4" /></button>
+                      <button type="button" onClick={() => setEventToEdit(event)} className="rounded-lg p-2 text-purple-700 hover:bg-purple-50" aria-label="Edit event"><Edit3 className="size-4" /></button>
                       <button type="button" onClick={() => setEventToDelete(event)} disabled={deleteEvent.isPending} className="rounded-lg p-2 text-red-600 hover:bg-red-50 disabled:opacity-50" aria-label="Delete event"><Trash2 className="size-4" /></button>
                     </div>
                   </div>
@@ -84,7 +83,7 @@ const EventsPanel = () => {
         <div className="rounded-3xl border border-dashed border-purple-200 bg-white py-16 text-center">
           <CalendarDays className="mx-auto size-10 text-purple-300" />
           <h3 className="mt-4 font-heading text-xl font-semibold text-[#211333]">No events found</h3>
-          <p className="mt-1 text-sm text-zinc-500">Create your first event or change the search keyword.</p>
+          <p className="mt-1 text-sm text-zinc-500">Use Create event in the navigation or change the search keyword.</p>
         </div>
       )}
 
@@ -95,7 +94,7 @@ const EventsPanel = () => {
           <Button disabled={page >= pages} onClick={() => setPage((value) => value + 1)} className="rounded-xl bg-white text-purple-700 hover:bg-purple-50">Next</Button>
         </div>
       )}
-      {editor.open && <EventFormModal event={editor.event} onClose={() => setEditor({ open: false, event: null })} />}
+      {eventToEdit && <EventFormModal event={eventToEdit} onClose={() => setEventToEdit(null)} />}
       <ConfirmDialog
         open={Boolean(eventToDelete)}
         title="Delete this event?"

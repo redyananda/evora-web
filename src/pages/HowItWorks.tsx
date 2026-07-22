@@ -52,7 +52,7 @@ const customerSteps: Step[] = [
 const organizerSteps: Step[] = [
   {
     icon: MessageSquare,
-    title: "Contact the admin",
+    title: "Contact the organizer",
     description:
       "Reach out to the Evora team and apply to become an organizer on the platform.",
   },
@@ -192,7 +192,7 @@ const HowItWorks = () => {
               <Link to="#">
                 <Button className="h-12 rounded-xl bg-white px-7 text-base font-semibold text-[#6d28d9] shadow-sm hover:bg-[#f3edff]">
                   <MessageSquare className="size-5" />
-                  Contact admin
+                  Contact organizer
                 </Button>
               </Link>
             )}

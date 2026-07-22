@@ -40,19 +40,12 @@ export const useOrganizerEvents = (page = 1, search = "", take = 10) =>
     },
   });
 
-export const useSaveOrganizerEvent = () => {
+export const useUpdateOrganizerEvent = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, payload }: { id?: number; payload: EventFormPayload }) => {
-      if (id) {
-        const { data } = await axiosInstance.patch<{ message: string; data: OrganizerEvent }>(
-          `/organizer/events/${id}`,
-          payload
-        );
-        return data;
-      }
-      const { data } = await axiosInstance.post<{ message: string; data: OrganizerEvent }>(
-        "/organizer/events",
+    mutationFn: async ({ id, payload }: { id: number; payload: EventFormPayload }) => {
+      const { data } = await axiosInstance.patch<{ message: string; data: OrganizerEvent }>(
+        `/organizer/events/${id}`,
         payload
       );
       return data;
@@ -62,7 +55,7 @@ export const useSaveOrganizerEvent = () => {
       void queryClient.invalidateQueries({ queryKey: ["organizer-dashboard"] });
       toast.success(message);
     },
-    onError: (error) => toast.error(errorMessage(error, "Failed to save event")),
+    onError: (error) => toast.error(errorMessage(error, "Failed to update event")),
   });
 };
 

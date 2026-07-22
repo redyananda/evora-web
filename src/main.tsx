@@ -1,28 +1,14 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Outlet } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import { Toaster } from "react-hot-toast";
 import "./index.css";
 
-// Pages
-import Home from "./pages/Home";
-import EventDetails from "./pages/EventDetails";
-import HowItWorks from "./pages/HowItWorks";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Unauthorized from "./pages/Unauthorized";
-import CreateEvent from "./pages/CreateEvent";
-import Profile from "./pages/Profile";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import LazyOrganizerDashboard from "./components/organizer/LazyOrganizerDashboard";
-
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import Purchase from "./pages/Purchase";
-import Payment from "./pages/Payment";
+import LazyOrganizerDashboard from "./components/organizer/LazyOrganizerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -30,59 +16,35 @@ const router = createBrowserRouter([
   // ── Public routes ─────────────────────────────────────────────────────────
   {
     path: "/",
-    element: <Home />,
+    lazy: async () => ({ Component: (await import("./pages/Home")).default }),
   },
   {
     path: "/events/:slug",
-    element: <EventDetails />,
-  },
-  {
-    path: "/events/:slug/purchase",
-    element: (
-      <ProtectedRoute>
-        <Purchase />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/events/:slug/payment",
-    element: (
-      <ProtectedRoute>
-        <Payment />
-      </ProtectedRoute>
-    ),
+    lazy: async () => ({ Component: (await import("./pages/EventDetails")).default }),
   },
   {
     path: "/how-it-works",
-    element: <HowItWorks />,
+    lazy: async () => ({ Component: (await import("./pages/HowItWorks")).default }),
   },
   {
     path: "/login",
-    element: <Login />,
+    lazy: async () => ({ Component: (await import("./pages/Login")).default }),
   },
   {
     path: "/register",
-    element: <Register />,
+    lazy: async () => ({ Component: (await import("./pages/Register")).default }),
   },
   {
     path: "/unauthorized",
-    element: <Unauthorized />,
-  },
-  {
-    path: "/events/create",
-    element: (
-      <ProtectedRoute allowedRoles={["ORGANIZER", "ADMIN"]}>
-        <CreateEvent />
-      </ProtectedRoute>
-    ),
+    lazy: async () => ({ Component: (await import("./pages/Unauthorized")).default }),
   },
   {
     path: "/forgot-password",
-    element: <ForgotPassword />,
+    lazy: async () => ({ Component: (await import("./pages/ForgotPassword")).default }),
   },
   {
     path: "/reset-password",
-    element: <ResetPassword />,
+    lazy: async () => ({ Component: (await import("./pages/ResetPassword")).default }),
   },
      {
     path: "/organizer",
@@ -93,14 +55,44 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/profile",
+    element: <ProtectedRoute allowedRoles={["CUSTOMER"]}><Outlet /></ProtectedRoute>,
+    children: [
+      {
+        path: "/events/:slug/purchase",
+        lazy: async () => ({ Component: (await import("./pages/Purchase")).default }),
+      },
+      {
+        path: "/events/:slug/payment",
+        lazy: async () => ({ Component: (await import("./pages/Payment")).default }),
+      },
+    ],
+  },
+  {
+    element: <ProtectedRoute><Outlet /></ProtectedRoute>,
+    children: [
+      {
+        path: "/profile",
+        lazy: async () => ({ Component: (await import("./pages/Profile")).default }),
+      },
+    ],
+  },
+  {
+    element: <ProtectedRoute allowedRoles={["ORGANIZER"]}><Outlet /></ProtectedRoute>,
+    children: [
+      {
+        path: "/events/create",
+        lazy: async () => ({ Component: (await import("./pages/CreateEvent")).default }),
+      },
+    ],
+  },
+  {
+    path: "/organizer",
     element: (
-      <ProtectedRoute>
-        <Profile />
+      <ProtectedRoute allowedRoles={["ORGANIZER"]}>
+        <LazyOrganizerDashboard />
       </ProtectedRoute>
     ),
   },
-
 ]);
 
 createRoot(document.getElementById("root")!).render(

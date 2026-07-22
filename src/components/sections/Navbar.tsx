@@ -32,11 +32,6 @@ const Navbar = () => {
             <img className="w-32 py-2" src="/navLogo.webp" alt="navbar-logo" />
           </Link>
           <ul className="hidden items-center gap-8 lg:flex">
-            <li>
-              <a href={user?.userRole === "ORGANIZER" ? "/organizer?tab=events" : "/register"} className="text-[15px] font-medium text-[#3f3f46] transition-colors hover:text-[#6d28d9]">
-                Create event
-              </a>
-            </li>
             {navLinks.map((link) => (
               <li key={link.label}>
                 <a
@@ -124,11 +119,6 @@ const Navbar = () => {
       {isOpen && (
         <div className="border-t border-[#e4d9ff] bg-[#f7f1ff] lg:hidden">
           <ul className="mx-auto flex max-w-7xl flex-col gap-1 px-6 py-4 md:px-12">
-            <li>
-              <a href={user?.userRole === "ORGANIZER" ? "/organizer?tab=events" : "/register"} onClick={() => setIsOpen(false)} className="block rounded-lg px-3 py-2.5 text-[15px] font-medium text-[#3f3f46] transition-colors hover:bg-[#f3edff] hover:text-[#6d28d9]">
-                Create event
-              </a>
-            </li>
             {navLinks.map((link) => (
               <li key={link.label}>
                 <a

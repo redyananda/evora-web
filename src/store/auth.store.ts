@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type UserRole = "CUSTOMER" | "ORGANIZER" | "ADMIN";
+export type UserRole = "CUSTOMER" | "ORGANIZER";
 
 export interface AuthUser {
   id: number;

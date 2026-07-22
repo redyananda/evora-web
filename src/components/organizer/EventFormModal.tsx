@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
-import { useSaveOrganizerEvent } from "@/hooks/api/organizer/useOrganizer";
+import { useUpdateOrganizerEvent } from "@/hooks/api/organizer/useOrganizer";
 import type {
   EventCategory,
   EventFormPayload,
@@ -13,7 +13,7 @@ import type {
 } from "@/types/organizer";
 
 interface EventFormModalProps {
-  event?: OrganizerEvent | null;
+  event: OrganizerEvent;
   onClose: () => void;
 }
 
@@ -26,19 +26,6 @@ const categories: Array<{ value: EventCategory; label: string }> = [
   { value: "WELLNESS", label: "Wellness" },
 ];
 
-const initialForm: EventFormPayload = {
-  eventName: "",
-  description: "",
-  category: "MUSIC",
-  price: 0,
-  venue: "",
-  location: "",
-  startDate: "",
-  endDate: "",
-  totalSeats: 1,
-  thumbnail: null,
-};
-
 const toLocalInput = (value: string) => {
   const date = new Date(value);
   const offset = date.getTimezoneOffset() * 60_000;
@@ -46,24 +33,20 @@ const toLocalInput = (value: string) => {
 };
 
 const EventFormModal = ({ event, onClose }: EventFormModalProps) => {
-  const [form, setForm] = useState<EventFormPayload>(() =>
-    event
-      ? {
-          eventName: event.eventName,
-          description: event.description,
-          category: event.category,
-          price: event.price,
-          venue: event.venue,
-          location: event.location,
-          startDate: toLocalInput(event.startDate),
-          endDate: toLocalInput(event.endDate),
-          totalSeats: event.totalSeats,
-          thumbnail: event.thumbnail,
-        }
-      : initialForm
-  );
+  const [form, setForm] = useState<EventFormPayload>(() => ({
+    eventName: event.eventName,
+    description: event.description,
+    category: event.category,
+    price: event.price,
+    venue: event.venue,
+    location: event.location,
+    startDate: toLocalInput(event.startDate),
+    endDate: toLocalInput(event.endDate),
+    totalSeats: event.totalSeats,
+    thumbnail: event.thumbnail,
+  }));
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const saveEvent = useSaveOrganizerEvent();
+  const updateEvent = useUpdateOrganizerEvent();
 
   const change = <K extends keyof EventFormPayload>(key: K, value: EventFormPayload[K]) =>
     setForm((current) => ({ ...current, [key]: value }));
@@ -74,9 +57,9 @@ const EventFormModal = ({ event, onClose }: EventFormModalProps) => {
   };
 
   const confirmSave = () => {
-    saveEvent.mutate(
+    updateEvent.mutate(
       {
-        id: event?.id,
+        id: event.id,
         payload: {
           ...form,
           startDate: new Date(form.startDate).toISOString(),
@@ -99,7 +82,7 @@ const EventFormModal = ({ event, onClose }: EventFormModalProps) => {
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-purple-100 bg-white px-6 py-5">
           <div>
             <h2 className="font-heading text-2xl font-semibold text-[#211333]">
-              {event ? "Edit event" : "Create a new event"}
+              Edit event
             </h2>
             <p className="mt-1 text-sm text-zinc-500">Keep the event information accurate for attendees.</p>
           </div>
@@ -153,23 +136,19 @@ const EventFormModal = ({ event, onClose }: EventFormModalProps) => {
           </div>
           <div className="flex justify-end gap-3 border-t border-purple-100 pt-5 sm:col-span-2">
             <Button type="button" onClick={onClose} className="rounded-xl border border-purple-200 bg-white px-5 text-purple-700 hover:bg-purple-50">Cancel</Button>
-            <Button type="submit" disabled={saveEvent.isPending} className="rounded-xl bg-[#6d28d9] px-5 text-white hover:bg-[#5b21b6]">
-              {saveEvent.isPending && <LoaderCircle className="size-4 animate-spin" />}
-              {event ? "Save changes" : "Create event"}
+            <Button type="submit" disabled={updateEvent.isPending} className="rounded-xl bg-[#6d28d9] px-5 text-white hover:bg-[#5b21b6]">
+              {updateEvent.isPending && <LoaderCircle className="size-4 animate-spin" />}
+              Save changes
             </Button>
           </div>
         </form>
       </div>
       <ConfirmDialog
         open={confirmOpen}
-        title={event ? "Save event changes?" : "Create this event?"}
-        description={
-          event
-            ? `The updated information for “${form.eventName}” will be visible to attendees.`
-            : `“${form.eventName}” will be added to your organizer event list.`
-        }
-        confirmLabel={event ? "Save changes" : "Create event"}
-        isPending={saveEvent.isPending}
+        title="Save event changes?"
+        description={`The updated information for “${form.eventName}” will be visible to attendees.`}
+        confirmLabel="Save changes"
+        isPending={updateEvent.isPending}
         onCancel={() => setConfirmOpen(false)}
         onConfirm={confirmSave}
       />

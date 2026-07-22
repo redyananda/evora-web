@@ -19,8 +19,8 @@ import Profile from "./pages/Profile";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
-// Auth guard
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import Purchase from "./pages/Purchase";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +33,10 @@ const router = createBrowserRouter([
   {
     path: "/events/:slug",
     element: <EventDetails />,
+  },
+  {
+    path: "/events/:slug/purchase",
+    element: <Purchase />,
   },
   {
     path: "/how-it-works",
@@ -57,8 +61,8 @@ const router = createBrowserRouter([
         <CreateEvent />
       </ProtectedRoute>
     ),
-  },{
-
+  },
+  {
     path: "/forgot-password",
     element: <ForgotPassword />,
   },
@@ -66,8 +70,6 @@ const router = createBrowserRouter([
     path: "/reset-password",
     element: <ResetPassword />,
   },
-
-  // ── Protected: any authenticated user ────────────────────────────────────
   {
     path: "/profile",
     element: (
@@ -97,5 +99,5 @@ createRoot(document.getElementById("root")!).render(
         <Toaster position="top-right" />
       </NuqsAdapter>
     </QueryClientProvider>
-  </StrictMode>
+  </StrictMode>,
 );

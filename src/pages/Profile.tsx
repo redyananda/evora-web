@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 import {
   useChangePassword,
   useProfile,
@@ -75,6 +76,8 @@ const rewardStatus = {
 const Profile = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profilePicture, setProfilePicture] = useState<string | null>();
+  const [pendingProfile, setPendingProfile] = useState<ProfileForm | null>(null);
+  const [pendingPassword, setPendingPassword] = useState<PasswordForm | null>(null);
   const { data: profile, isLoading, isError, refetch } = useProfile();
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
@@ -169,29 +172,46 @@ const Profile = () => {
   };
 
   const onSubmitProfile = (values: ProfileForm) => {
+    setPendingProfile(values);
+  };
+
+  const confirmProfileUpdate = () => {
+    if (!pendingProfile) return;
     updateProfile.mutate({
-      firstName: values.firstName,
-      lastName: values.lastName,
-      email: values.email,
-      phoneNumber: values.phoneNumber || null,
-      address: values.address || null,
+      firstName: pendingProfile.firstName,
+      lastName: pendingProfile.lastName,
+      email: pendingProfile.email,
+      phoneNumber: pendingProfile.phoneNumber || null,
+      address: pendingProfile.address || null,
       profilePicture: displayedProfilePicture,
       ...(profile.userRole === "ORGANIZER"
         ? {
-            organizerName: values.organizerName,
-            organizerDescription: values.organizerDescription || null,
+            organizerName: pendingProfile.organizerName,
+            organizerDescription: pendingProfile.organizerDescription || null,
           }
         : {}),
+    }, {
+      onSuccess: () => setPendingProfile(null),
     });
   };
 
   const onSubmitPassword = (values: PasswordForm) => {
+    setPendingPassword(values);
+  };
+
+  const confirmPasswordUpdate = () => {
+    if (!pendingPassword) return;
     changePassword.mutate(
       {
-        currentPassword: values.currentPassword,
-        newPassword: values.newPassword,
+        currentPassword: pendingPassword.currentPassword,
+        newPassword: pendingPassword.newPassword,
       },
-      { onSuccess: () => resetPasswordForm() }
+      {
+        onSuccess: () => {
+          setPendingPassword(null);
+          resetPasswordForm();
+        },
+      }
     );
   };
 
@@ -364,6 +384,25 @@ const Profile = () => {
           </aside>
         </div>
       </main>
+      <ConfirmDialog
+        open={Boolean(pendingProfile)}
+        title="Save profile changes?"
+        description="Your personal and organizer information will be updated with the values currently entered in the form."
+        confirmLabel="Save changes"
+        isPending={updateProfile.isPending}
+        onCancel={() => setPendingProfile(null)}
+        onConfirm={confirmProfileUpdate}
+      />
+      <ConfirmDialog
+        open={Boolean(pendingPassword)}
+        title="Change your password?"
+        description="Your current password will stop working after this change. Make sure you remember the new password."
+        confirmLabel="Change password"
+        tone="danger"
+        isPending={changePassword.isPending}
+        onCancel={() => setPendingPassword(null)}
+        onConfirm={confirmPasswordUpdate}
+      />
     </div>
   );
 };

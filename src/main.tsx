@@ -21,6 +21,7 @@ import ResetPassword from "./pages/ResetPassword";
 
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Purchase from "./pages/Purchase";
+import Payment from "./pages/Payment";
 
 const queryClient = new QueryClient();
 
@@ -36,7 +37,19 @@ const router = createBrowserRouter([
   },
   {
     path: "/events/:slug/purchase",
-    element: <Purchase />,
+    element: (
+      <ProtectedRoute>
+        <Purchase />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/events/:slug/payment",
+    element: (
+      <ProtectedRoute>
+        <Payment />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/how-it-works",

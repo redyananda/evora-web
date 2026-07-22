@@ -83,7 +83,7 @@ const EventDetails = () => {
     );
   }
 
-  const maxPerOrder = Math.max(1, Math.min(5, event.availableSeats));
+  const maxPerOrder = Math.max(1, Math.min(3, event.availableSeats));
   const total = event.price * quantity;
   const paragraphs = event.description
     .split(/\n+/)
@@ -278,7 +278,12 @@ const EventDetails = () => {
 
               {/* Total */}
               <div className="mt-5 flex items-center justify-between border-t border-[#efe7ff] pt-4">
-                <span className="text-sm font-medium text-[#3f3f46]">Total</span>
+                <div>
+                  <span className="text-sm font-medium text-[#3f3f46]">
+                    Total
+                  </span>
+                  <p className="text-xs text-[#a1a1aa]">Before tax &amp; fees</p>
+                </div>
                 <span className="font-heading text-xl font-bold text-[#1e1b2e]">
                   {formatIDR(total)}
                 </span>

@@ -58,7 +58,7 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-
+  {
     path: "/forgot-password",
     element: <ForgotPassword />,
   },
@@ -67,7 +67,6 @@ const router = createBrowserRouter([
     element: <ResetPassword />,
   },
 
-  // ── Protected: any authenticated user ────────────────────────────────────
   {
     path: "/profile",
     element: (
@@ -76,17 +75,6 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-
-  // ── Protected: ORGANIZER only ─────────────────────────────────────────────
-  // Example: create event page
-  // {
-  //   path: "/events/create",
-  //   element: (
-  //     <ProtectedRoute allowedRoles={["ORGANIZER"]}>
-  //       <CreateEvent />
-  //     </ProtectedRoute>
-  //   ),
-  // },
 
   // ── Protected: CUSTOMER only ──────────────────────────────────────────────
   // Example: my tickets

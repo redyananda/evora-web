@@ -20,8 +20,9 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import LazyOrganizerDashboard from "./components/organizer/LazyOrganizerDashboard";
 
-// Auth guard
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import Purchase from "./pages/Purchase";
+import Payment from "./pages/Payment";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,22 @@ const router = createBrowserRouter([
   {
     path: "/events/:slug",
     element: <EventDetails />,
+  },
+  {
+    path: "/events/:slug/purchase",
+    element: (
+      <ProtectedRoute>
+        <Purchase />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/events/:slug/payment",
+    element: (
+      <ProtectedRoute>
+        <Payment />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/how-it-works",
@@ -67,7 +84,6 @@ const router = createBrowserRouter([
     path: "/reset-password",
     element: <ResetPassword />,
   },
-
   {
     path: "/profile",
     element: (
@@ -77,29 +93,6 @@ const router = createBrowserRouter([
     ),
   },
 
-<<<<<<< Updated upstream
-=======
-  // ── Protected: ORGANIZER only ─────────────────────────────────────────────
-  {
-    path: "/organizer",
-    element: (
-      <ProtectedRoute allowedRoles={["ORGANIZER"]}>
-        <LazyOrganizerDashboard />
-      </ProtectedRoute>
-    ),
-  },
-
->>>>>>> Stashed changes
-  // ── Protected: CUSTOMER only ──────────────────────────────────────────────
-  // Example: my tickets
-  // {
-  //   path: "/my-tickets",
-  //   element: (
-  //     <ProtectedRoute allowedRoles={["CUSTOMER"]}>
-  //       <MyTickets />
-  //     </ProtectedRoute>
-  //   ),
-  // },
 ]);
 
 createRoot(document.getElementById("root")!).render(
@@ -110,5 +103,5 @@ createRoot(document.getElementById("root")!).render(
         <Toaster position="top-right" />
       </NuqsAdapter>
     </QueryClientProvider>
-  </StrictMode>
+  </StrictMode>,
 );

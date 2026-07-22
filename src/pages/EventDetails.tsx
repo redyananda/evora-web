@@ -83,7 +83,7 @@ const EventDetails = () => {
     );
   }
 
-  const maxPerOrder = Math.max(1, Math.min(5, event.availableSeats));
+  const maxPerOrder = Math.max(1, Math.min(3, event.availableSeats));
   const total = event.price * quantity;
   const paragraphs = event.description
     .split(/\n+/)
@@ -278,18 +278,31 @@ const EventDetails = () => {
 
               {/* Total */}
               <div className="mt-5 flex items-center justify-between border-t border-[#efe7ff] pt-4">
-                <span className="text-sm font-medium text-[#3f3f46]">Total</span>
+                <div>
+                  <span className="text-sm font-medium text-[#3f3f46]">
+                    Total
+                  </span>
+                  <p className="text-xs text-[#a1a1aa]">Before tax &amp; fees</p>
+                </div>
                 <span className="font-heading text-xl font-bold text-[#1e1b2e]">
                   {formatIDR(total)}
                 </span>
               </div>
 
-              <Button
-                disabled={event.availableSeats <= 0}
-                className="mt-5 h-12 w-full rounded-xl bg-[#6d28d9] text-base font-semibold text-white shadow-sm hover:bg-[#5b21b6] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {event.availableSeats <= 0 ? "Sold Out" : "Book Now"}
-              </Button>
+              {event.availableSeats <= 0 ? (
+                <Button
+                  disabled
+                  className="mt-5 h-12 w-full rounded-xl bg-[#6d28d9] text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Sold Out
+                </Button>
+              ) : (
+                <Link to={`/events/${event.slug}/purchase?tickets=${quantity}`}>
+                  <Button className="mt-5 h-12 w-full rounded-xl bg-[#6d28d9] text-base font-semibold text-white shadow-sm hover:bg-[#5b21b6]">
+                    Book Now
+                  </Button>
+                </Link>
+              )}
 
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <Button className="border border-[#e4d9ff] bg-white text-[15px] font-semibold text-[#3f3f46] shadow-none hover:bg-[#f3edff]">

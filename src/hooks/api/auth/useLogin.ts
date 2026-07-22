@@ -27,12 +27,12 @@ export const useLogin = () => {
     },
     onSuccess: (data) => {
       setAuth(data.data.user, data.data.token);
-      toast.success(data.message ?? "Login berhasil!");
+      toast.success(data.message ?? "Logged in successfully!");
     },
     onError: (error: unknown) => {
       const message =
         (error as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Login gagal. Periksa email dan password Anda.";
+          ?.message ?? "Login failed. Check your email and password.";
       toast.error(message);
     },
   });

@@ -12,8 +12,8 @@ import { useLogin } from "@/hooks/api/auth/useLogin";
 // ─── Validation schema ────────────────────────────────────────────────────────
 
 const loginSchema = z.object({
-  email: z.string().email("Format email tidak valid"),
-  password: z.string().min(1, "Password wajib diisi"),
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -51,11 +51,11 @@ const Login = () => {
           <Link to="/">
             <img className="mx-auto mb-6 w-28" src="/navLogo.webp" alt="Evora" />
           </Link>
-          <h1 className="text-2xl font-bold text-[#18181b]">Masuk ke Akun Anda</h1>
+          <h1 className="text-2xl font-bold text-[#18181b]">Log In to Your Account</h1>
           <p className="mt-1 text-sm text-[#71717a]">
-            Belum punya akun?{" "}
+            Don't have an account?{" "}
             <Link to="/register" className="font-medium text-[#6d28d9] hover:underline">
-              Daftar sekarang
+              Sign up now
             </Link>
           </p>
         </div>
@@ -79,14 +79,19 @@ const Login = () => {
 
           {/* Password */}
           <div>
-            <Label htmlFor="password" className="mb-1 block text-sm font-medium">
-              Password
-            </Label>
+            <div className="mb-1 flex items-center justify-between">
+              <Label htmlFor="password" className="block text-sm font-medium">
+                Password
+              </Label>
+              <Link to="/forgot-password" className="text-xs font-semibold text-[#6d28d9] hover:underline">
+                Forgot password?
+              </Link>
+            </div>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Masukkan password"
+                placeholder="Enter your password"
                 className="pr-10"
                 {...register("password")}
               />
@@ -94,7 +99,7 @@ const Login = () => {
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-[#71717a] hover:text-[#6d28d9]"
-                aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
               </button>
@@ -109,7 +114,7 @@ const Login = () => {
             disabled={isPending}
             className="mt-2 w-full rounded-xl bg-[#6d28d9] py-5 text-[15px] font-semibold text-white hover:bg-[#5b21b6] disabled:opacity-60"
           >
-            {isPending ? "Masuk..." : "Masuk"}
+            {isPending ? "Logging in..." : "Log In"}
           </Button>
         </form>
       </div>

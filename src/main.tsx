@@ -15,6 +15,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Unauthorized from "./pages/Unauthorized";
 import CreateEvent from "./pages/CreateEvent";
+import Profile from "./pages/Profile";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // Auth guard
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -56,6 +59,45 @@ const router = createBrowserRouter([
     ),
   },
 
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPassword />,
+  },
+
+  // ── Protected: any authenticated user ────────────────────────────────────
+  {
+    path: "/profile",
+    element: (
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    ),
+  },
+
+  // ── Protected: ORGANIZER only ─────────────────────────────────────────────
+  // Example: create event page
+  // {
+  //   path: "/events/create",
+  //   element: (
+  //     <ProtectedRoute allowedRoles={["ORGANIZER"]}>
+  //       <CreateEvent />
+  //     </ProtectedRoute>
+  //   ),
+  // },
+
+  // ── Protected: CUSTOMER only ──────────────────────────────────────────────
+  // Example: my tickets
+  // {
+  //   path: "/my-tickets",
+  //   element: (
+  //     <ProtectedRoute allowedRoles={["CUSTOMER"]}>
+  //       <MyTickets />
+  //     </ProtectedRoute>
+  //   ),
+  // },
 ]);
 
 createRoot(document.getElementById("root")!).render(

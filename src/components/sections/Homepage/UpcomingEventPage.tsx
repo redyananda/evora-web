@@ -22,7 +22,7 @@ const months = [
   "Feb",
   "Mar",
   "Apr",
-  "Mei",
+  "May",
   "Jun",
   "Jul",
   "Aug",

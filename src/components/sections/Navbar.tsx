@@ -7,10 +7,7 @@ import toast from "react-hot-toast";
 
 const navLinks = [
   { label: "Discover", to: "/#discover" },
-<<<<<<< Updated upstream
   { label: "Create event", to: "/events/create" },
-=======
->>>>>>> Stashed changes
   { label: "How it works", to: "/how-it-works" },
   { label: "Help", to: "#" },
 ];

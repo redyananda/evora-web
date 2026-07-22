@@ -18,6 +18,7 @@ import CreateEvent from "./pages/CreateEvent";
 import Profile from "./pages/Profile";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import LazyOrganizerDashboard from "./components/organizer/LazyOrganizerDashboard";
 
 // Auth guard
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -76,6 +77,19 @@ const router = createBrowserRouter([
     ),
   },
 
+<<<<<<< Updated upstream
+=======
+  // ── Protected: ORGANIZER only ─────────────────────────────────────────────
+  {
+    path: "/organizer",
+    element: (
+      <ProtectedRoute allowedRoles={["ORGANIZER"]}>
+        <LazyOrganizerDashboard />
+      </ProtectedRoute>
+    ),
+  },
+
+>>>>>>> Stashed changes
   // ── Protected: CUSTOMER only ──────────────────────────────────────────────
   // Example: my tickets
   // {

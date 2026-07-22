@@ -18,6 +18,7 @@ import CreateEvent from "./pages/CreateEvent";
 import Profile from "./pages/Profile";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import LazyOrganizerDashboard from "./components/organizer/LazyOrganizerDashboard";
 
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Purchase from "./pages/Purchase";
@@ -92,16 +93,6 @@ const router = createBrowserRouter([
     ),
   },
 
-  // ── Protected: CUSTOMER only ──────────────────────────────────────────────
-  // Example: my tickets
-  // {
-  //   path: "/my-tickets",
-  //   element: (
-  //     <ProtectedRoute allowedRoles={["CUSTOMER"]}>
-  //       <MyTickets />
-  //     </ProtectedRoute>
-  //   ),
-  // },
 ]);
 
 createRoot(document.getElementById("root")!).render(

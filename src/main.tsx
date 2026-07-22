@@ -14,6 +14,9 @@ import HowItWorks from "./pages/HowItWorks";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Unauthorized from "./pages/Unauthorized";
+import Profile from "./pages/Profile";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // Auth guard
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -46,17 +49,24 @@ const router = createBrowserRouter([
     path: "/unauthorized",
     element: <Unauthorized />,
   },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPassword />,
+  },
 
   // ── Protected: any authenticated user ────────────────────────────────────
-  // Example: dashboard accessible by both roles
-  // {
-  //   path: "/dashboard",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Dashboard />
-  //     </ProtectedRoute>
-  //   ),
-  // },
+  {
+    path: "/profile",
+    element: (
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    ),
+  },
 
   // ── Protected: ORGANIZER only ─────────────────────────────────────────────
   // Example: create event page

@@ -29,10 +29,10 @@ export interface Event {
 // {
 //             "id": 16,
 //             "eventName": "Sunrise Yoga & Breathwork Festival",
-//             "description": "Festival kesehatan di tepi pantai yang menggabungkan yoga, teknik pernapasan, dan meditasi kolektif saat matahari terbit. Dipandu instruktur bersertifikat internasional, acara ini menawarkan pengalaman menyegarkan bagi pemula maupun praktisi berpengalaman. Akhiri sesi dengan sarapan sehat dan komunitas yang penuh energi positif.",
+//             "description": "A beachfront wellness festival combining yoga, breathing techniques, and group meditation at sunrise. Led by internationally certified instructors, this event offers a refreshing experience for beginners and experienced practitioners alike. End the session with a healthy breakfast and an uplifting community.",
 //             "category": "WELLNESS",
 //             "price": 275000,
-//             "venue": "Pantai Pandawa",
+//             "venue": "Pandawa Beach",
 //             "location": "Bali",
 //             "startDate": "2026-09-14T05:30:00.000Z",
 //             "endDate": "2026-09-14T11:00:00.000Z",

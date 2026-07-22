@@ -11,7 +11,7 @@ import './UpcomingEventPage.css'
 const categories = [
   "All",
   "Music",
-  "Tech & Inovation",
+  "Tech & Innovation",
   "Food & Drink",
   "Arts & Culture",
   "Business",
@@ -23,7 +23,7 @@ const months = [
   "Feb",
   "Mar",
   "Apr",
-  "Mei",
+  "May",
   "Jun",
   "Jul",
   "Aug",

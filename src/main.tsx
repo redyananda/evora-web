@@ -14,6 +14,7 @@ import HowItWorks from "./pages/HowItWorks";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Unauthorized from "./pages/Unauthorized";
+import CreateEvent from "./pages/CreateEvent";
 import Profile from "./pages/Profile";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -50,6 +51,14 @@ const router = createBrowserRouter([
     element: <Unauthorized />,
   },
   {
+    path: "/events/create",
+    element: (
+      <ProtectedRoute allowedRoles={["ORGANIZER", "ADMIN"]}>
+        <CreateEvent />
+      </ProtectedRoute>
+    ),
+  },
+
     path: "/forgot-password",
     element: <ForgotPassword />,
   },

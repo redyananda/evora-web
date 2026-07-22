@@ -16,7 +16,8 @@ import Footer from "@/components/sections/Footer";
 import Navbar from "@/components/sections/Navbar";
 import useGetEventBySlug from "@/hooks/api/event/useGetEventBySlug";
 
-const formatIDR = (value: number) => `IDR ${value.toLocaleString("id-ID")}`;
+const formatIDR = (value: number) =>
+  value === 0 ? "Free" : `IDR ${value.toLocaleString("id-ID")}`;
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", {

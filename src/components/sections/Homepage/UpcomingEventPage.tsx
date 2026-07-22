@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import { ArrowRight, MapPin } from "lucide-react";
-import { useState } from "react";
 import { Ticket } from "lucide-react";
 import { Link } from "react-router";
 import type { PageableResponse } from "@/types/pagination";
@@ -37,10 +36,22 @@ interface GridProps {
   setPage: (page: number) => void;
   events: NoInfer<PageableResponse<Event>> | undefined;
   isPending: boolean;
+  category: string;
+  setCategory: (category: string) => void;
 }
 
-const UpcomingEventPage = ({ events, isPending, setPage }: GridProps) => {
-  const [activeCategory, setActiveCategory] = useState("All");
+const UpcomingEventPage = ({
+  events,
+  isPending,
+  setPage,
+  category: activeCategory,
+  setCategory,
+}: GridProps) => {
+  const onSelectCategory = (category: string) => {
+    setCategory(category);
+    setPage(1);
+  };
+
   return (
     <section id="discover" className="relative overflow-hidden bg-[#f7f1ff]">
       <div className="mx-auto max-w-7xl px-6 py-16 md:px-12 lg:px-16">
@@ -66,7 +77,7 @@ const UpcomingEventPage = ({ events, isPending, setPage }: GridProps) => {
           {categories.map((category) => (
             <button
               key={category}
-              onClick={() => setActiveCategory(category)}
+              onClick={() => onSelectCategory(category)}
               className={cn(
                 "rounded-full px-4 py-2 text-sm font-medium transition-colors",
                 activeCategory === category
@@ -120,7 +131,9 @@ const UpcomingEventPage = ({ events, isPending, setPage }: GridProps) => {
                   <div className="mt-4 flex items-center gap-1.5 border-t border-[#efe7ff] pt-4">
                     <Ticket className="size-5 shrink-0 text-[#6d28d9]" />
                     <p className="text-lg font-bold leading-none text-[#6d28d9]">
-                      IDR {event.price.toLocaleString("id-ID")}
+                      {event.price === 0
+                        ? "Free"
+                        : `IDR ${event.price.toLocaleString("id-ID")}`}
                     </p>
                   </div>
                 </div>

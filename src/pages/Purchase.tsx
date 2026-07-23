@@ -11,6 +11,7 @@ import {
   Minus,
   Plus,
   Ticket,
+  TicketPercent,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -18,15 +19,10 @@ import { Input } from "@/components/ui/input";
 import Footer from "@/components/sections/Footer";
 import Navbar from "@/components/sections/Navbar";
 import useGetEventBySlug from "@/hooks/api/event/useGetEventBySlug";
+import useGetEventVouchers from "@/hooks/api/event/useGetEventVouchers";
 import { useAuthStore } from "@/store/auth.store";
 
 const TAX_RATE = 0.11;
-
-const PROMO_CODES: Record<string, { type: "percent" | "fixed"; value: number }> = {
-  EVORA10: { type: "fixed", value: 10000 },
-  HEMAT25: { type: "fixed", value: 25000 },
-  WELCOME: { type: "fixed", value: 50000 },
-};
 
 const formatIDR = (value: number) =>
   value === 0 ? "Free" : `IDR ${value.toLocaleString("id-ID")}`;
@@ -48,6 +44,8 @@ const Purchase = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { data: event, isPending, isError } = useGetEventBySlug(slug ?? "");
+  // Live, redeemable vouchers for this event (validated again on the server).
+  const { data: vouchers } = useGetEventVouchers(slug ?? "");
 
   // Attendee details come from the signed-in account (route is auth-guarded).
   const user = useAuthStore((state) => state.user);
@@ -63,29 +61,33 @@ const Purchase = () => {
     ? Math.max(1, Math.min(3, event.availableSeats))
     : 3;
 
+  const appliedVoucher = useMemo(
+    () => vouchers?.find((voucher) => voucher.code === appliedPromo) ?? null,
+    [vouchers, appliedPromo],
+  );
+
   const { subtotal, tax, discount, total } = useMemo(() => {
     const sub = (event?.price ?? 0) * quantity;
-    const promo = appliedPromo ? PROMO_CODES[appliedPromo] : null;
-    const disc = promo
-      ? promo.type === "percent"
-        ? Math.round(sub * (promo.value / 100))
-        : Math.min(promo.value, sub)
-      : 0;
+    const disc = appliedVoucher ? Math.min(appliedVoucher.discount, sub) : 0;
     const t = Math.round(sub * TAX_RATE);
     return { subtotal: sub, tax: t, discount: disc, total: sub - disc + t };
-  }, [event?.price, quantity, appliedPromo]);
+  }, [event?.price, quantity, appliedVoucher]);
 
-  const handleApplyPromo = () => {
-    const code = promoCode.trim().toUpperCase();
+  const applyCode = (raw: string) => {
+    const code = raw.trim().toUpperCase();
     if (!code) return;
-    if (!PROMO_CODES[code]) {
+    const match = vouchers?.find((voucher) => voucher.code === code);
+    if (!match) {
       setAppliedPromo(null);
-      toast.error("Invalid promo code");
+      toast.error("Invalid or expired voucher code");
       return;
     }
+    setPromoCode(code);
     setAppliedPromo(code);
-    toast.success("Promo code applied");
+    toast.success("Voucher applied");
   };
+
+  const handleApplyPromo = () => applyCode(promoCode);
 
   const handleCompleteRegistration = () => {
     if (!event || !user) return;
@@ -395,6 +397,36 @@ const Purchase = () => {
 
               {/* Promo code */}
               <div className="mt-5 border-t border-[#efe7ff] pt-5">
+                {vouchers && vouchers.length > 0 && (
+                  <div className="mb-4">
+                    <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[#6d28d9]">
+                      <TicketPercent className="size-3.5" />
+                      Available vouchers
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {vouchers.map((voucher) => {
+                        const active = appliedPromo === voucher.code;
+                        return (
+                          <button
+                            key={voucher.id}
+                            type="button"
+                            onClick={() => applyCode(voucher.code)}
+                            className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                              active
+                                ? "border-[#6d28d9] bg-[#6d28d9] text-white"
+                                : "border-[#e4d9ff] bg-white text-[#6d28d9] hover:bg-[#f3edff]"
+                            }`}
+                          >
+                            <span className="tracking-wide">{voucher.code}</span>
+                            <span className={active ? "text-white/80" : "text-[#a1a1aa]"}>
+                              -{formatRupiah(voucher.discount)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                   <Input
                     value={promoCode}

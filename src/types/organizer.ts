@@ -109,6 +109,30 @@ export interface ParticipantData {
   }>;
 }
 
+export interface OrganizerVoucher {
+  id: number;
+  eventId: number;
+  code: string;
+  discount: number;
+  total: number;
+  availableVoucher: number;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  event: { id: number; eventName: string };
+  claimedCount: number;
+  isActive: boolean;
+}
+
+export interface VoucherFormPayload {
+  eventId: number;
+  code: string;
+  discount: number;
+  total: number;
+  startDate: string;
+  endDate: string;
+}
+
 export interface PaginatedOrganizerEvents {
   data: OrganizerEvent[];
   meta: PaginationMeta;

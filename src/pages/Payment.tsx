@@ -27,11 +27,11 @@ import { useUploadPaymentProof } from "@/hooks/api/transaction/useUploadPaymentP
 import type { TransactionStatus } from "@/types/organizer";
 
 const TAX_RATE = 0.11;
-const RESERVATION_MINUTES = 120;
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const RESERVATION_MINUTES = 120; 
+const CONFIRMATION_MINUTES = 3 * 24 * 60; 
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 
-// Static transfer instructions — replace with values from the transaction API.
 const TRANSFER_DETAILS = {
   bankName: "Evora Global Bank",
   accountNumber: "8820 – 4519 – 0023",
@@ -109,7 +109,6 @@ const Payment = () => {
   const state = (location.state ?? {}) as PaymentState;
   const { data: event, isPending, isError } = useGetEventBySlug(slug ?? "");
 
-  // The order id is in the URL, so this survives a page refresh.
   const txnId = Number(searchParams.get("txn")) || null;
   const { data: transaction } = useGetTransaction(txnId);
 
@@ -121,11 +120,19 @@ const Payment = () => {
 
   const quantity = Math.max(1, transaction?.quantity ?? state.quantity ?? 1);
 
-  // Deadline comes from the DB (paymentDeadline) so a refresh doesn't reset it.
-  // Until the order is fetched we optimistically use the 2h window as a stand-in.
+  const awaitingConfirmation =
+    transaction?.status === "WAITING_FOR_ADMIN_CONFIRMATION";
+
   const expiresAt = transaction
-    ? new Date(transaction.paymentDeadline).getTime()
+    ? new Date(
+        (awaitingConfirmation && transaction.confirmationDeadline
+          ? transaction.confirmationDeadline
+          : transaction.paymentDeadline),
+      ).getTime()
     : null;
+
+  const windowSeconds =
+    (awaitingConfirmation ? CONFIRMATION_MINUTES : RESERVATION_MINUTES) * 60;
 
   const [secondsLeft, setSecondsLeft] = useState(RESERVATION_MINUTES * 60);
 
@@ -145,15 +152,13 @@ const Payment = () => {
     return subtotal + Math.round(subtotal * TAX_RATE);
   }, [transaction?.finalPrice, state.total, event?.price, quantity]);
 
-  // Proof already sent — the order has moved past the payment step.
   const alreadySubmitted =
     Boolean(transaction?.paymentProof) ||
     transaction?.status === "WAITING_FOR_ADMIN_CONFIRMATION";
 
   const expired = secondsLeft <= 0;
 
-  // Prefer the real status from the DB; fall back to the local timer/upload state
-  // so the badge updates instantly before the refetched transaction arrives.
+
   const effectiveStatus: TransactionStatus =
     (transaction?.status as TransactionStatus | undefined) ??
     (alreadySubmitted
@@ -164,21 +169,20 @@ const Payment = () => {
   const statusBadge = STATUS_BADGE[effectiveStatus] ?? STATUS_BADGE.WAITING_FOR_PAYMENT;
   const StatusIcon = statusBadge.icon;
 
-  // A confirmed order (e.g. a free event) skips the payment step entirely —
-  // no timer, no upload, no transfer details, just confirmation.
+
   const isConfirmed = effectiveStatus === "DONE";
 
-  // A rejected order is a dead end — the organizer declined the payment. Hide
-  // the timer, upload and transfer details and show a plain message instead.
+
   const isRejected = effectiveStatus === "REJECTED";
 
   const progress = Math.max(
     0,
-    Math.min(100, (secondsLeft / (RESERVATION_MINUTES * 60)) * 100),
+    Math.min(100, (secondsLeft / windowSeconds) * 100),
   );
 
   const expiryLabel = expiresAt
-    ? new Date(expiresAt).toLocaleTimeString("en-US", {
+    ? new Date(expiresAt).toLocaleString("en-US", {
+        ...(awaitingConfirmation ? { month: "short", day: "numeric" } : {}),
         hour: "2-digit",
         minute: "2-digit",
       })
@@ -280,7 +284,9 @@ const Payment = () => {
             <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-[#52525b]">
               {isConfirmed
                 ? "Your registration is confirmed and your ticket is ready. We've saved your spot for this event."
-                : "Please complete your payment and upload the receipt before the timer expires to confirm your attendance."}
+                : awaitingConfirmation
+                  ? "We've received your receipt. The organizer has up to 3 days to review and confirm your payment."
+                  : "Please complete your payment and upload the receipt before the timer expires to confirm your attendance."}
             </p>
           )}
         </header>
@@ -344,8 +350,12 @@ const Payment = () => {
               </div>
               <p className="mt-4 text-xs text-[#71717a]">
                 {expired
-                  ? "Reservation expired"
-                  : `Reservation expires at ${expiryLabel}`}
+                  ? awaitingConfirmation
+                    ? "Confirmation window closed"
+                    : "Reservation expired"
+                  : awaitingConfirmation
+                    ? `Confirmation expires ${expiryLabel}`
+                    : `Reservation expires at ${expiryLabel}`}
               </p>
             </div>
           )}

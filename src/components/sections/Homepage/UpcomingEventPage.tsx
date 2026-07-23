@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { ArrowRight, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { Ticket } from "lucide-react";
 import { Link } from "react-router";
 import type { PageableResponse } from "@/types/pagination";
@@ -55,22 +55,13 @@ const UpcomingEventPage = ({
   return (
     <section id="discover" className="relative overflow-hidden bg-[#f7f1ff]">
       <div className="mx-auto max-w-7xl px-6 py-16 md:px-12 lg:px-16">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="font-heading text-3xl font-semibold tracking-tight text-[#1e1b2e] sm:text-4xl">
-              Upcoming Events
-            </h1>
-            <p className="mt-2 text-base text-[#52525b]">
-              Pick a category and city, or type straight into the search box.
-            </p>
-          </div>
-          <a
-            href="#"
-            className="group inline-flex items-center gap-2 text-[15px] font-semibold text-[#6d28d9] hover:text-[#5b21b6]"
-          >
-            View all events
-            <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-          </a>
+        <div className="mb-8">
+          <h1 className="font-heading text-3xl font-semibold tracking-tight text-[#1e1b2e] sm:text-4xl">
+            Upcoming Events
+          </h1>
+          <p className="mt-2 text-base text-[#52525b]">
+            Pick a category and city, or type straight into the search box.
+          </p>
         </div>
 
         <div className="mb-10 flex flex-wrap gap-2.5">

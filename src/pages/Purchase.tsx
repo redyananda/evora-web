@@ -100,6 +100,11 @@ const Purchase = () => {
       {
         onSuccess: (res) => {
           const order = res.data;
+          // Free events are confirmed immediately by the server (status DONE),
+          // so there's no payment step to send the user through.
+          if (order.status === "DONE") {
+            toast.success("You're registered! Your ticket is confirmed.");
+          }
           // The order id lives in the URL so a refresh on the payment page can
           // re-fetch it (and its real deadline) instead of losing everything.
           navigate(`/events/${event.slug}/payment?txn=${order.id}`, {
@@ -381,6 +386,8 @@ const Purchase = () => {
                   </>
                 ) : soldOut ? (
                   "Sold Out"
+                ) : total === 0 ? (
+                  "Get Free Ticket"
                 ) : (
                   "Complete Registration"
                 )}

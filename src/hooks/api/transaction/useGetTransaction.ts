@@ -12,6 +12,8 @@ export interface Transaction {
   finalPrice: number;
   paymentProof: string | null;
   paymentDeadline: string;
+  confirmationDeadline: string | null;
+  paidAt: string | null;
   createdAt: string;
   event: {
     eventName: string;

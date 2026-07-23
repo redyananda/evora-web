@@ -5,6 +5,8 @@ import {
   ArrowLeft,
   CalendarDays,
   CheckCircle2,
+  Coins,
+  Gift,
   Loader2,
   Mail,
   MapPin,
@@ -12,6 +14,7 @@ import {
   Plus,
   Ticket,
   TicketPercent,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -20,6 +23,7 @@ import Footer from "@/components/sections/Footer";
 import Navbar from "@/components/sections/Navbar";
 import useGetEventBySlug from "@/hooks/api/event/useGetEventBySlug";
 import useGetEventVouchers from "@/hooks/api/event/useGetEventVouchers";
+import { useProfile } from "@/hooks/api/profile/useProfile";
 import { useAuthStore } from "@/store/auth.store";
 
 const TAX_RATE = 0.11;
@@ -44,16 +48,21 @@ const Purchase = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { data: event, isPending, isError } = useGetEventBySlug(slug ?? "");
-  // Live, redeemable vouchers for this event (validated again on the server).
   const { data: vouchers } = useGetEventVouchers(slug ?? "");
+  const { data: profile } = useProfile();
 
-  // Attendee details come from the signed-in account (route is auth-guarded).
   const user = useAuthStore((state) => state.user);
 
   const initialQty = Math.max(1, Number(searchParams.get("tickets")) || 1);
   const [quantity, setQuantity] = useState(initialQty);
   const [promoCode, setPromoCode] = useState("");
-  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+
+  const [appliedPromo, setAppliedPromo] = useState<{
+    type: "voucher" | "coupon";
+    code: string;
+    discount: number;
+  } | null>(null);
+  const [pointsInput, setPointsInput] = useState("");
   const { mutate: createTransaction, isPending: isProcessing } =
     useCreateTransaction();
 
@@ -61,33 +70,70 @@ const Purchase = () => {
     ? Math.max(1, Math.min(3, event.availableSeats))
     : 3;
 
-  const appliedVoucher = useMemo(
-    () => vouchers?.find((voucher) => voucher.code === appliedPromo) ?? null,
-    [vouchers, appliedPromo],
+  const activeCoupons = useMemo(
+    () => profile?.coupons.filter((coupon) => coupon.status === "ACTIVE") ?? [],
+    [profile?.coupons],
   );
 
-  const { subtotal, tax, discount, total } = useMemo(() => {
-    const sub = (event?.price ?? 0) * quantity;
-    const disc = appliedVoucher ? Math.min(appliedVoucher.discount, sub) : 0;
-    const t = Math.round(sub * TAX_RATE);
-    return { subtotal: sub, tax: t, discount: disc, total: sub - disc + t };
-  }, [event?.price, quantity, appliedVoucher]);
+  const pointBalance = profile?.userPoint ?? 0;
+
+  const { basePrice, promoDiscount, taxableAmount, tax, bill, pointsUsed, total } =
+    useMemo(() => {
+      const base = (event?.price ?? 0) * quantity;
+
+      const promo = appliedPromo ? Math.min(appliedPromo.discount, base) : 0;
+      const taxable = base - promo;
+      const t = Math.round(taxable * TAX_RATE);
+      const dueBeforePoints = taxable + t;
+
+      const requestedPoints = Math.max(0, Math.floor(Number(pointsInput) || 0));
+      const pUsed = Math.min(requestedPoints, pointBalance, dueBeforePoints);
+
+      return {
+        basePrice: base,
+        promoDiscount: promo,
+        taxableAmount: taxable,
+        tax: t,
+        bill: dueBeforePoints,
+        pointsUsed: pUsed,
+        total: dueBeforePoints - pUsed,
+      };
+    }, [event?.price, quantity, appliedPromo, pointsInput, pointBalance]);
+
+  const maxRedeemablePoints = useMemo(
+    () => Math.min(pointBalance, bill),
+    [pointBalance, bill],
+  );
 
   const applyCode = (raw: string) => {
     const code = raw.trim().toUpperCase();
     if (!code) return;
-    const match = vouchers?.find((voucher) => voucher.code === code);
-    if (!match) {
-      setAppliedPromo(null);
-      toast.error("Invalid or expired voucher code");
+
+    const voucher = vouchers?.find((v) => v.code === code);
+    if (voucher) {
+      setAppliedPromo({ type: "voucher", code, discount: voucher.discount });
+      setPromoCode(code);
+      toast.success("Voucher applied");
       return;
     }
-    setPromoCode(code);
-    setAppliedPromo(code);
-    toast.success("Voucher applied");
+
+    const coupon = activeCoupons.find((c) => c.code === code);
+    if (coupon) {
+      setAppliedPromo({ type: "coupon", code, discount: coupon.discount });
+      setPromoCode(code);
+      toast.success("Coupon applied");
+      return;
+    }
+
+    toast.error("Invalid or expired promo code");
   };
 
   const handleApplyPromo = () => applyCode(promoCode);
+
+  const clearPromo = () => {
+    setAppliedPromo(null);
+    setPromoCode("");
+  };
 
   const handleCompleteRegistration = () => {
     if (!event || !user) return;
@@ -95,23 +141,25 @@ const Purchase = () => {
       {
         eventId: event.id,
         quantity,
-        // The server validates the voucher against the event; the local
-        // preview above is only a hint.
-        ...(appliedPromo ? { voucherCode: appliedPromo } : {}),
+
+        ...(appliedPromo?.type === "voucher"
+          ? { voucherCode: appliedPromo.code }
+          : {}),
+        ...(appliedPromo?.type === "coupon"
+          ? { couponCode: appliedPromo.code }
+          : {}),
+        ...(pointsUsed > 0 ? { pointsToUse: pointsUsed } : {}),
       },
       {
         onSuccess: (res) => {
           const order = res.data;
-          // Free events are confirmed immediately by the server (status DONE),
-          // so there's no payment step to send the user through.
+
           if (order.status === "DONE") {
             toast.success("You're registered! Your ticket is confirmed.");
           }
-          // The order id lives in the URL so a refresh on the payment page can
-          // re-fetch it (and its real deadline) instead of losing everything.
+
           navigate(`/events/${event.slug}/payment?txn=${order.id}`, {
             state: {
-              // Use the server-authoritative total, not the local estimate.
               transactionId: order.id,
               total: order.finalPrice,
               quantity,
@@ -322,48 +370,74 @@ const Purchase = () => {
                 Order Summary
               </h2>
 
-              <div className="mt-5 flex items-center justify-between border-b border-[#efe7ff] pb-4 text-sm">
-                <span className="text-[#52525b]">Event ticket (x{quantity})</span>
-                <span className="font-semibold text-[#1e1b2e]">
-                  {formatIDR(subtotal)}
-                </span>
-              </div>
-
-              <div className="mt-4 space-y-2.5 text-sm">
+              {/*
+                Receipt order
+              */}
+              <div className="mt-5 space-y-2.5 border-t border-[#efe7ff] pt-4 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-[#52525b]">Subtotal</span>
+                  <span className="text-[#52525b]">
+                    Subtotal{" "}
+                    <span className="text-[#a1a1aa]">(x{quantity})</span>
+                  </span>
                   <span className="font-medium text-[#1e1b2e]">
-                    {formatIDR(subtotal)}
+                    {formatRupiah(basePrice)}
                   </span>
                 </div>
+
+                {appliedPromo && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-[#52525b]">
+                        <span className="flex items-center gap-1 text-xs font-semibold text-[#16a34a]">
+                          <CheckCircle2 className="size-3.5" />
+                          {appliedPromo.code}
+                        </span>
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-[#a1a1aa]">
+                          {appliedPromo.type}
+                        </span>
+                      </span>
+                      <span className="font-medium text-[#16a34a]">
+                        - {formatRupiah(promoDiscount)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#52525b]">Taxable amount</span>
+                      <span className="font-medium text-[#1e1b2e]">
+                        {formatRupiah(taxableAmount)}
+                      </span>
+                    </div>
+                  </>
+                )}
+
                 <div className="flex items-center justify-between">
-                  <span className="text-[#52525b]">Tax &amp; Fees (11%)</span>
+                  <span className="text-[#52525b]">Tax (11%)</span>
                   <span className="font-medium text-[#1e1b2e]">
                     {formatRupiah(tax)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-[#52525b]">
-                    Promo Code
-                    {appliedPromo && (
-                      <span className="flex items-center gap-1 text-xs font-semibold text-[#16a34a]">
-                        <CheckCircle2 className="size-3.5" />
-                        {appliedPromo}
+
+                {pointsUsed > 0 && (
+                  <>
+                    <div className="flex items-center justify-between border-t border-[#efe7ff] pt-2.5">
+                      <span className="text-[#52525b]">Amount due</span>
+                      <span className="font-medium text-[#1e1b2e]">
+                        {formatRupiah(bill)}
                       </span>
-                    )}
-                  </span>
-                  <span
-                    className={
-                      discount > 0
-                        ? "font-medium text-[#16a34a]"
-                        : "font-medium text-[#1e1b2e]"
-                    }
-                  >
-                    {discount > 0
-                      ? `- ${formatRupiah(discount)}`
-                      : formatRupiah(0)}
-                  </span>
-                </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-[#52525b]">
+                        Points
+                        <span className="flex items-center gap-1 text-xs font-semibold text-[#16a34a]">
+                          <Coins className="size-3.5" />
+                          {pointsUsed.toLocaleString("id-ID")} pts
+                        </span>
+                      </span>
+                      <span className="font-medium text-[#16a34a]">
+                        - {formatRupiah(pointsUsed)}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="mt-5 flex items-center justify-between border-t border-[#efe7ff] pt-4">
@@ -395,17 +469,67 @@ const Purchase = () => {
                 )}
               </Button>
 
-              {/* Promo code */}
+              {/* Promo code — a voucher OR a coupon; only one applies per order */}
               <div className="mt-5 border-t border-[#efe7ff] pt-5">
+                <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[#6d28d9]">
+                  <TicketPercent className="size-3.5" />
+                  Promo code
+                  <span className="font-normal text-[#a1a1aa]">
+                    · voucher or coupon, one per order
+                  </span>
+                </p>
+
+                {appliedPromo ? (
+                  <div className="flex items-center justify-between gap-2 rounded-lg border border-[#6d28d9] bg-[#faf7ff] px-3 py-2">
+                    <span className="flex items-center gap-1.5 text-sm font-semibold text-[#6d28d9]">
+                      <CheckCircle2 className="size-4" />
+                      {appliedPromo.code}
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-[#a1a1aa]">
+                        {appliedPromo.type}
+                      </span>
+                      <span className="font-medium text-[#16a34a]">
+                        -{formatRupiah(appliedPromo.discount)}
+                      </span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={clearPromo}
+                      aria-label="Remove promo code"
+                      className="flex size-6 items-center justify-center rounded-full text-[#71717a] transition-colors hover:bg-[#efe7ff] hover:text-[#6d28d9]"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      placeholder="Promo Code"
+                      className="h-10 flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleApplyPromo}
+                      disabled={!promoCode.trim()}
+                      className="h-10 rounded-lg border border-[#e4d9ff] bg-white px-4 text-sm font-semibold text-[#6d28d9] shadow-none hover:bg-[#f3edff] disabled:opacity-50"
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                )}
+
                 {vouchers && vouchers.length > 0 && (
-                  <div className="mb-4">
+                  <div className="mt-4">
                     <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[#6d28d9]">
                       <TicketPercent className="size-3.5" />
                       Available vouchers
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {vouchers.map((voucher) => {
-                        const active = appliedPromo === voucher.code;
+                        const active =
+                          appliedPromo?.type === "voucher" &&
+                          appliedPromo.code === voucher.code;
                         return (
                           <button
                             key={voucher.id}
@@ -427,23 +551,78 @@ const Purchase = () => {
                     </div>
                   </div>
                 )}
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                    placeholder="Promo Code"
-                    className="h-10 flex-1"
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleApplyPromo}
-                    disabled={!promoCode.trim()}
-                    className="h-10 rounded-lg border border-[#e4d9ff] bg-white px-4 text-sm font-semibold text-[#6d28d9] shadow-none hover:bg-[#f3edff] disabled:opacity-50"
-                  >
-                    Apply
-                  </Button>
-                </div>
+
+                {activeCoupons.length > 0 && (
+                  <div className="mt-4">
+                    <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[#6d28d9]">
+                      <Gift className="size-3.5" />
+                      Your coupons
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {activeCoupons.map((coupon) => {
+                        const active =
+                          appliedPromo?.type === "coupon" &&
+                          appliedPromo.code === coupon.code;
+                        return (
+                          <button
+                            key={coupon.id}
+                            type="button"
+                            onClick={() => applyCode(coupon.code)}
+                            className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                              active
+                                ? "border-[#6d28d9] bg-[#6d28d9] text-white"
+                                : "border-[#e4d9ff] bg-white text-[#6d28d9] hover:bg-[#f3edff]"
+                            }`}
+                          >
+                            <span className="tracking-wide">{coupon.code}</span>
+                            <span className={active ? "text-white/80" : "text-[#a1a1aa]"}>
+                              -{formatRupiah(coupon.discount)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Points — redeem the loyalty balance against the payable amount */}
+              {pointBalance > 0 && (
+                <div className="mt-5 border-t border-[#efe7ff] pt-5">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="flex items-center gap-1.5 text-xs font-semibold text-[#6d28d9]">
+                      <Coins className="size-3.5" />
+                      Use points
+                    </p>
+                    <span className="text-xs text-[#71717a]">
+                      Balance: {pointBalance.toLocaleString("id-ID")} pts
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={maxRedeemablePoints}
+                      value={pointsInput}
+                      onChange={(e) => setPointsInput(e.target.value)}
+                      placeholder="0"
+                      className="h-10 flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => setPointsInput(String(maxRedeemablePoints))}
+                      disabled={maxRedeemablePoints <= 0}
+                      className="h-10 rounded-lg border border-[#e4d9ff] bg-white px-4 text-sm font-semibold text-[#6d28d9] shadow-none hover:bg-[#f3edff] disabled:opacity-50"
+                    >
+                      Use max
+                    </Button>
+                  </div>
+                  <p className="mt-2 text-xs text-[#a1a1aa]">
+                    Up to {maxRedeemablePoints.toLocaleString("id-ID")} pts can be
+                    applied to this order · 1 pt = IDR 1.
+                  </p>
+                </div>
+              )}
             </div>
           </aside>
         </div>

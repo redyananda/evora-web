@@ -7,9 +7,10 @@ export interface CreateTransactionPayload {
   eventId: number;
   quantity: number;
   voucherCode?: string;
+  couponCode?: string;
+  pointsToUse?: number;
 }
 
-// The server recomputes the price, so it also sends back the breakdown it used.
 export interface TransactionResult {
   id: number;
   eventId: number;
@@ -20,8 +21,13 @@ export interface TransactionResult {
   paymentDeadline: string;
   breakdown: {
     subtotal: number;
-    tax: number;
+    voucherDiscount: number;
+    couponDiscount: number;
     discount: number;
+    taxableAmount: number;
+    tax: number;
+    bill: number;
+    pointsUsed: number;
     total: number;
   };
 }
@@ -45,14 +51,14 @@ export const useCreateTransaction = () => {
       return data;
     },
     onSuccess: () => {
-      // Seats went down, so any cached event data is now stale.
       queryClient.invalidateQueries({ queryKey: ["event"] });
       queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
     onError: (error: unknown) => {
       const message =
         (error as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Gagal membuat pesanan. Silakan coba lagi.";
+          ?.message ?? "Failed to create order. Please try again.";
       toast.error(message);
     },
   });

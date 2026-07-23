@@ -1,16 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useParams, useSearchParams } from "react-router";
 import {
+  Ban,
   CalendarDays,
+  CircleAlert,
+  CircleCheck,
+  CircleX,
   Clock,
   Copy,
   FileUp,
   Headset,
+  Hourglass,
   Loader2,
   MapPin,
   Ticket,
   X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/sections/Footer";
@@ -18,6 +24,7 @@ import Navbar from "@/components/sections/Navbar";
 import useGetEventBySlug from "@/hooks/api/event/useGetEventBySlug";
 import useGetTransaction from "@/hooks/api/transaction/useGetTransaction";
 import { useUploadPaymentProof } from "@/hooks/api/transaction/useUploadPaymentProof";
+import type { TransactionStatus } from "@/types/organizer";
 
 const TAX_RATE = 0.11;
 const RESERVATION_MINUTES = 120;
@@ -30,13 +37,53 @@ const TRANSFER_DETAILS = {
   accountNumber: "8820 – 4519 – 0023",
 };
 
+type StatusBadge = {
+  label: string;
+  icon: LucideIcon;
+  className: string;
+};
+
+const STATUS_BADGE: Record<TransactionStatus, StatusBadge> = {
+  WAITING_FOR_PAYMENT: {
+    label: "Waiting for Payment",
+    icon: Clock,
+    className: "bg-[#d9f99d] text-[#3f6212]",
+  },
+  WAITING_FOR_ADMIN_CONFIRMATION: {
+    label: "Waiting for Admin Confirmation",
+    icon: Hourglass,
+    className: "bg-[#fef3c7] text-[#92400e]",
+  },
+  DONE: {
+    label: "Payment Confirmed",
+    icon: CircleCheck,
+    className: "bg-[#d1fae5] text-[#065f46]",
+  },
+  REJECTED: {
+    label: "Payment Rejected",
+    icon: CircleX,
+    className: "bg-[#fee2e2] text-[#991b1b]",
+  },
+  EXPIRED: {
+    label: "Reservation Expired",
+    icon: CircleAlert,
+    className: "bg-[#f4f4f5] text-[#52525b]",
+  },
+  CANCELED: {
+    label: "Reservation Canceled",
+    icon: Ban,
+    className: "bg-[#f4f4f5] text-[#52525b]",
+  },
+};
+
 type PaymentState = {
   total?: number;
   quantity?: number;
   attendee?: { firstName: string; lastName: string; email: string };
 };
 
-const formatIDR = (value: number) => `IDR ${value.toLocaleString("id-ID")}`;
+const formatIDR = (value: number) =>
+  value <= 0 ? "Free" : `IDR ${value.toLocaleString("id-ID")}`;
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", {
@@ -104,6 +151,27 @@ const Payment = () => {
     transaction?.status === "WAITING_FOR_ADMIN_CONFIRMATION";
 
   const expired = secondsLeft <= 0;
+
+  // Prefer the real status from the DB; fall back to the local timer/upload state
+  // so the badge updates instantly before the refetched transaction arrives.
+  const effectiveStatus: TransactionStatus =
+    (transaction?.status as TransactionStatus | undefined) ??
+    (alreadySubmitted
+      ? "WAITING_FOR_ADMIN_CONFIRMATION"
+      : expired
+        ? "EXPIRED"
+        : "WAITING_FOR_PAYMENT");
+  const statusBadge = STATUS_BADGE[effectiveStatus] ?? STATUS_BADGE.WAITING_FOR_PAYMENT;
+  const StatusIcon = statusBadge.icon;
+
+  // A confirmed order (e.g. a free event) skips the payment step entirely —
+  // no timer, no upload, no transfer details, just confirmation.
+  const isConfirmed = effectiveStatus === "DONE";
+
+  // A rejected order is a dead end — the organizer declined the payment. Hide
+  // the timer, upload and transfer details and show a plain message instead.
+  const isRejected = effectiveStatus === "REJECTED";
+
   const progress = Math.max(
     0,
     Math.min(100, (secondsLeft / (RESERVATION_MINUTES * 60)) * 100),
@@ -195,47 +263,92 @@ const Payment = () => {
       <main className="mx-auto max-w-5xl px-6 py-10 md:px-12">
         {/* Header */}
         <header className="text-center">
-          <span className="inline-flex items-center gap-2 rounded-full bg-[#d9f99d] px-4 py-1.5 text-sm font-semibold text-[#3f6212]">
-            <Clock className="size-4" />
-            Waiting for Payment
+          <span
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold ${statusBadge.className}`}
+          >
+            <StatusIcon className="size-4" />
+            {statusBadge.label}
           </span>
           <h1 className="mt-4 font-heading text-4xl font-bold tracking-tight text-[#1e1b2e] sm:text-5xl">
-            Secure Your Spot
+            {isConfirmed
+              ? "You're All Set"
+              : isRejected
+                ? "Purchase Not Approved"
+                : "Secure Your Spot"}
           </h1>
-          <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-[#52525b]">
-            Please complete your payment and upload the receipt before the timer
-            expires to confirm your attendance.
-          </p>
+          {!isRejected && (
+            <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-[#52525b]">
+              {isConfirmed
+                ? "Your registration is confirmed and your ticket is ready. We've saved your spot for this event."
+                : "Please complete your payment and upload the receipt before the timer expires to confirm your attendance."}
+            </p>
+          )}
         </header>
 
+        {isRejected ? (
+          /* Rejected order — a plain message, no timer / upload / transfer. */
+          <div className="mt-10 flex flex-col items-center gap-5 rounded-2xl bg-white p-10 text-center shadow-sm">
+            <span className="flex size-16 items-center justify-center rounded-full bg-[#fee2e2]">
+              <CircleX className="size-8 text-[#dc2626]" />
+            </span>
+            <h2 className="font-heading text-2xl font-bold text-[#1e1b2e]">
+              Your ticket purchase was rejected
+            </h2>
+            <p className="max-w-md text-[15px] leading-relaxed text-[#52525b]">
+              Sorry, your ticket purchase was rejected. If you believe this is a
+              mistake, please contact the event organizer.
+            </p>
+            <Link to="/#discover">
+              <Button className="mt-1 rounded-xl bg-[#6d28d9] px-6 text-[15px] font-semibold text-white shadow-sm hover:bg-[#5b21b6]">
+                Back to events
+              </Button>
+            </Link>
+          </div>
+        ) : (
+        <>
         {/* Timer + event summary */}
         <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-5">
-          {/* Time remaining */}
-          <div className="flex flex-col items-center justify-center rounded-2xl bg-white p-8 text-center shadow-sm lg:col-span-2">
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#a1a1aa]">
-              Time Remaining
-            </p>
-            <p
-              className={`mt-3 font-heading text-5xl font-bold tabular-nums ${
-                expired ? "text-red-500" : "text-[#6d28d9]"
-              }`}
-            >
-              {formatClock(secondsLeft)}
-            </p>
-            <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-[#efe7ff]">
-              <div
-                className={`h-full rounded-full transition-all duration-1000 ease-linear ${
-                  expired ? "bg-red-400" : "bg-[#6d28d9]"
-                }`}
-                style={{ width: `${progress}%` }}
-              />
+          {/* Time remaining — or a confirmation panel for a resolved order */}
+          {isConfirmed ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl bg-white p-8 text-center shadow-sm lg:col-span-2">
+              <span className="flex size-16 items-center justify-center rounded-full bg-[#d1fae5]">
+                <CircleCheck className="size-8 text-[#059669]" />
+              </span>
+              <p className="mt-4 font-heading text-2xl font-bold text-[#1e1b2e]">
+                Ticket Confirmed
+              </p>
+              <p className="mt-2 text-sm text-[#52525b]">
+                No payment needed. Your{" "}
+                {quantity > 1 ? "tickets are" : "ticket is"} ready to go.
+              </p>
             </div>
-            <p className="mt-4 text-xs text-[#71717a]">
-              {expired
-                ? "Reservation expired"
-                : `Reservation expires at ${expiryLabel}`}
-            </p>
-          </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-2xl bg-white p-8 text-center shadow-sm lg:col-span-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#a1a1aa]">
+                Time Remaining
+              </p>
+              <p
+                className={`mt-3 font-heading text-5xl font-bold tabular-nums ${
+                  expired ? "text-red-500" : "text-[#6d28d9]"
+                }`}
+              >
+                {formatClock(secondsLeft)}
+              </p>
+              <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-[#efe7ff]">
+                <div
+                  className={`h-full rounded-full transition-all duration-1000 ease-linear ${
+                    expired ? "bg-red-400" : "bg-[#6d28d9]"
+                  }`}
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="mt-4 text-xs text-[#71717a]">
+                {expired
+                  ? "Reservation expired"
+                  : `Reservation expires at ${expiryLabel}`}
+              </p>
+            </div>
+          )}
 
           {/* Event summary */}
           <div className="flex items-start gap-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6 lg:col-span-3">
@@ -272,7 +385,26 @@ const Payment = () => {
           </div>
         </div>
 
+        {/* Confirmed order — nothing left to do */}
+        {isConfirmed && (
+          <div className="mt-6 flex flex-col items-center gap-4 rounded-2xl bg-white p-8 text-center shadow-sm">
+            <h2 className="font-heading text-xl font-bold text-[#1e1b2e]">
+              Your spot is reserved
+            </h2>
+            <p className="max-w-md text-[15px] text-[#52525b]">
+              A confirmation has been recorded for this order. Show up on the event
+              day. No receipt or transfer is required.
+            </p>
+            <Link to="/#discover">
+              <Button className="rounded-xl bg-[#6d28d9] px-6 text-[15px] font-semibold text-white shadow-sm hover:bg-[#5b21b6]">
+                Browse more events
+              </Button>
+            </Link>
+          </div>
+        )}
+
         {/* Upload + transfer details */}
+        {!isConfirmed && (
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-5">
           {/* Proof of payment */}
           <section className="rounded-2xl bg-white p-6 shadow-sm sm:p-8 lg:col-span-3">
@@ -288,7 +420,22 @@ const Payment = () => {
               onChange={(e) => acceptFile(e.target.files?.[0])}
             />
 
-            {file ? (
+            {alreadySubmitted ? (
+              /* Proof already sent — locked, no remove/swap. */
+              <div className="mt-5 flex items-center gap-4 rounded-2xl border border-[#c7f0d8] bg-[#f0fdf4] p-5">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#dcfce7]">
+                  <CircleCheck className="size-5 text-[#16a34a]" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-[#1e1b2e]">
+                    {file?.name ?? "Payment receipt uploaded"}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[#16a34a]">
+                    Uploaded, waiting for confirmation
+                  </p>
+                </div>
+              </div>
+            ) : file ? (
               <div className="mt-5 flex items-center gap-4 rounded-2xl border border-[#e4d9ff] bg-[#faf7ff] p-5">
                 <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#ede4ff]">
                   <FileUp className="size-5 text-[#6d28d9]" />
@@ -399,6 +546,7 @@ const Payment = () => {
             </Button>
           </section>
         </div>
+        )}
 
         {/* Support banner */}
         <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-2xl bg-[#e9e3f7] p-6 sm:flex-row sm:items-center">
@@ -422,6 +570,8 @@ const Payment = () => {
             Contact Support
           </Button>
         </div>
+        </>
+        )}
       </main>
 
       <Footer />

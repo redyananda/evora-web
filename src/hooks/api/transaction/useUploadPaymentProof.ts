@@ -31,6 +31,7 @@ export const useUploadPaymentProof = () => {
     },
     onSuccess: (data, { transactionId }) => {
       queryClient.invalidateQueries({ queryKey: ["transaction", transactionId] });
+      queryClient.invalidateQueries({ queryKey: ["customer-transactions"] });
       toast.success(data.message ?? "Bukti pembayaran berhasil diunggah!");
     },
     onError: (error: unknown) => {

@@ -99,6 +99,10 @@ const router = createBrowserRouter([
     element: <ProtectedRoute allowedRoles={["CUSTOMER"]}><Outlet /></ProtectedRoute>,
     children: [
       {
+        path: "/customer",
+        lazy: async () => ({ Component: (await import("./pages/CustomerDashboard")).default }),
+      },
+      {
         path: "/events/:slug/purchase",
         lazy: async () => ({ Component: (await import("./pages/Purchase")).default }),
       },

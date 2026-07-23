@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { LayoutDashboard, Menu, X, LogOut, User } from "lucide-react";
+import { LayoutDashboard, Menu, TicketCheck, X, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/auth.store";
 import toast from "react-hot-toast";
@@ -52,6 +52,11 @@ const Navbar = () => {
               {user.userRole === "ORGANIZER" && (
                 <Link to="/organizer" className="flex items-center gap-1.5 rounded-xl bg-[#6d28d9] px-3 py-2 text-sm font-semibold text-white hover:bg-[#5b21b6]">
                   <LayoutDashboard className="size-4" /> Dashboard
+                </Link>
+              )}
+              {user.userRole === "CUSTOMER" && (
+                <Link to="/customer" className="flex items-center gap-1.5 rounded-xl bg-[#6d28d9] px-3 py-2 text-sm font-semibold text-white hover:bg-[#5b21b6]">
+                  <TicketCheck className="size-4" /> My Dashboard
                 </Link>
               )}
               {/* User greeting */}
@@ -122,6 +127,11 @@ const Navbar = () => {
                 {user.userRole === "ORGANIZER" && (
                   <Link to="/organizer" onClick={() => setIsOpen(false)} className="flex items-center justify-center gap-2 rounded-xl bg-[#6d28d9] px-4 py-2.5 text-sm font-semibold text-white">
                     <LayoutDashboard className="size-4" /> Organizer Dashboard
+                  </Link>
+                )}
+                {user.userRole === "CUSTOMER" && (
+                  <Link to="/customer" onClick={() => setIsOpen(false)} className="flex items-center justify-center gap-2 rounded-xl bg-[#6d28d9] px-4 py-2.5 text-sm font-semibold text-white">
+                    <TicketCheck className="size-4" /> My Dashboard
                   </Link>
                 )}
                 {/* User info */}

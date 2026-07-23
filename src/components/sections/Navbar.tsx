@@ -9,7 +9,7 @@ const navLinks = [
   { label: "Discover", to: "/#discover" },
   { label: "Create event", to: "/events/create" },
   { label: "How it works", to: "/how-it-works" },
-  { label: "Help", to: "#" },
+  { label: "Help", to: "/help" },
 ];
 
 const Navbar = () => {

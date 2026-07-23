@@ -39,6 +39,16 @@ const formatTime = (iso: string) =>
     timeZone: "UTC",
   });
 
+const jakartaNow = () => {
+  const parts = new Date().toLocaleString("sv-SE", {
+    timeZone: "Asia/Jakarta",
+  });
+  return new Date(`${parts.replace(" ", "T")}Z`).getTime();
+};
+
+const hasEventEnded = (endDate: string) =>
+  new Date(endDate).getTime() < jakartaNow();
+
   function toTitleCase(str: string): string {
   return str
     .toLowerCase()
@@ -330,7 +340,14 @@ const EventDetails = () => {
                 </span>
               </div>
 
-              {event.availableSeats <= 0 ? (
+              {hasEventEnded(event.endDate) ? (
+                <Button
+                  disabled
+                  className="mt-5 h-12 w-full rounded-xl bg-[#6d28d9] text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Event has ended
+                </Button>
+              ) : event.availableSeats <= 0 ? (
                 <Button
                   disabled
                   className="mt-5 h-12 w-full rounded-xl bg-[#6d28d9] text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"

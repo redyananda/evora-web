@@ -13,6 +13,7 @@ import {
   QrCode,
   ReceiptText,
   RefreshCw,
+  Star,
   TicketCheck,
   User,
   X,
@@ -21,7 +22,9 @@ import toast from "react-hot-toast";
 import Footer from "@/components/sections/Footer";
 import Navbar from "@/components/sections/Navbar";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import useCustomerTransactions from "@/hooks/api/transaction/useCustomerTransactions";
+import { useCreateReview } from "@/hooks/api/transaction/useCreateReview";
 import { useUploadPaymentProof } from "@/hooks/api/transaction/useUploadPaymentProof";
 import { useAuthStore } from "@/store/auth.store";
 import type { CustomerTransaction } from "@/types/customer";
@@ -74,15 +77,31 @@ const formatEventDate = (date: string) =>
   new Intl.DateTimeFormat("id-ID", {
     dateStyle: "full",
     timeStyle: "short",
-    timeZone: "Asia/Jakarta",
+    timeZone: "UTC",
   }).format(new Date(date));
 
 const formatShortDate = (date: string) =>
   new Intl.DateTimeFormat("id-ID", {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: "UTC",
+  }).format(new Date(date));
+
+// Unlike event dates (stored as Jakarta wall-clock read back as UTC), order
+// timestamps like createdAt are real UTC instants, so display them in WIB.
+const formatInstant = (date: string) =>
+  new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
     timeZone: "Asia/Jakarta",
   }).format(new Date(date));
+
+const getJakartaWallClockNow = () => {
+  const parts = new Date().toLocaleString("sv-SE", {
+    timeZone: "Asia/Jakarta",
+  });
+  return new Date(`${parts.replace(" ", "T")}Z`).getTime();
+};
 
 const getOrderCode = (id: number) => `EVR-${String(id).padStart(6, "0")}`;
 
@@ -340,12 +359,186 @@ const TicketModal = ({
   );
 };
 
+const StarRatingDisplay = ({ value }: { value: number }) => (
+  <div className="flex items-center gap-0.5" aria-label={`Rating ${value} dari 5`}>
+    {[1, 2, 3, 4, 5].map((star) => (
+      <Star
+        key={star}
+        className={`size-4 ${
+          star <= value
+            ? "fill-amber-400 text-amber-400"
+            : "fill-transparent text-zinc-300"
+        }`}
+      />
+    ))}
+  </div>
+);
+
+const StarRatingInput = ({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+}) => {
+  const [hovered, setHovered] = useState(0);
+  const active = hovered || value;
+
+  return (
+    <div
+      className="flex items-center gap-1.5"
+      role="radiogroup"
+      aria-label="Beri rating bintang"
+    >
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          role="radio"
+          aria-checked={value === star}
+          aria-label={`${star} bintang`}
+          onMouseEnter={() => setHovered(star)}
+          onMouseLeave={() => setHovered(0)}
+          onClick={() => onChange(star)}
+          className="rounded-md p-0.5 transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6d28d9]"
+        >
+          <Star
+            className={`size-9 transition-colors ${
+              star <= active
+                ? "fill-amber-400 text-amber-400"
+                : "fill-transparent text-zinc-300"
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+};
+
+const ReviewModal = ({
+  ticket,
+  onClose,
+}: {
+  ticket: CustomerTransaction;
+  onClose: () => void;
+}) => {
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const { mutate: submitReview, isPending } = useCreateReview();
+
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [onClose]);
+
+  const handleSubmit = () => {
+    if (rating < 1) {
+      toast.error("Silakan pilih rating bintang terlebih dahulu");
+      return;
+    }
+    submitReview(
+      {
+        transactionId: ticket.id,
+        rating,
+        comment: comment.trim() || undefined,
+      },
+      { onSuccess: onClose },
+    );
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#1e1b2e]/60 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="review-title"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <button
+          type="button"
+          aria-label="Tutup form ulasan"
+          onClick={onClose}
+          className="absolute right-4 top-4 z-10 rounded-full bg-white/90 p-2 text-zinc-600 shadow-sm hover:text-[#6d28d9]"
+        >
+          <X className="size-5" />
+        </button>
+
+        <div className="bg-gradient-to-br from-[#6d28d9] to-[#9333ea] px-7 py-7 text-white">
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+            <Star className="size-4" />
+            Beri Ulasan
+          </span>
+          <h2
+            id="review-title"
+            className="mt-4 pr-10 font-heading text-2xl font-bold"
+          >
+            {ticket.event.eventName}
+          </h2>
+          <p className="mt-1 text-sm text-purple-100">
+            oleh {ticket.event.organizer.organizerName}
+          </p>
+        </div>
+
+        <div className="px-7 py-7">
+          <p className="text-sm font-semibold text-[#1e1b2e]">
+            Seberapa puas Anda dengan acara ini?
+          </p>
+          <div className="mt-3">
+            <StarRatingInput value={rating} onChange={setRating} />
+          </div>
+
+          <label
+            htmlFor="review-comment"
+            className="mt-6 block text-sm font-semibold text-[#1e1b2e]"
+          >
+            Ulasan{" "}
+            <span className="font-normal text-zinc-400">(opsional)</span>
+          </label>
+          <Textarea
+            id="review-comment"
+            value={comment}
+            maxLength={1000}
+            onChange={(event) => setComment(event.target.value)}
+            placeholder="Ceritakan pengalaman Anda menghadiri acara ini..."
+            className="mt-2 min-h-28"
+          />
+          <p className="mt-1 text-right text-xs text-zinc-400">
+            {comment.length}/1000
+          </p>
+
+          <Button
+            type="button"
+            disabled={isPending}
+            onClick={handleSubmit}
+            className="mt-4 h-11 w-full rounded-xl bg-[#6d28d9] text-sm font-semibold text-white hover:bg-[#5b21b6] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isPending ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : (
+              <Star className="mr-2 size-4" />
+            )}
+            {isPending ? "Mengirim..." : "Kirim Ulasan"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TicketCard = ({
   ticket,
   onOpen,
+  onReview,
 }: {
   ticket: CustomerTransaction;
   onOpen: () => void;
+  onReview?: () => void;
 }) => (
   <article className="overflow-hidden rounded-2xl border border-[#e8def8] bg-white shadow-sm transition-shadow hover:shadow-md">
     <div className="grid sm:grid-cols-[180px_1fr]">
@@ -394,14 +587,33 @@ const TicketCard = ({
               {ticket.quantity} ticket{ticket.quantity > 1 ? "s" : ""}
             </p>
           </div>
-          <Button
-            type="button"
-            onClick={onOpen}
-            className="rounded-xl bg-[#6d28d9] px-4 font-semibold text-white hover:bg-[#5b21b6]"
-          >
-            <QrCode className="mr-2 size-4" />
-            Lihat E-Ticket
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {onReview &&
+              (ticket.review ? (
+                <span className="inline-flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">
+                  <StarRatingDisplay value={ticket.review.rating} />
+                  Reviewed
+                </span>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={onReview}
+                  variant="outline"
+                  className="rounded-xl border-[#6d28d9] px-4 font-semibold text-[#6d28d9] hover:bg-[#f3edff]"
+                >
+                  <Star className="mr-2 size-4" />
+                  Beri Ulasan
+                </Button>
+              ))}
+            <Button
+              type="button"
+              onClick={onOpen}
+              className="rounded-xl bg-[#6d28d9] px-4 font-semibold text-white hover:bg-[#5b21b6]"
+            >
+              <QrCode className="mr-2 size-4" />
+              Lihat E-Ticket
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -416,10 +628,12 @@ const MyTickets = ({
   const [period, setPeriod] = useState<TicketPeriod>("upcoming");
   const [selectedTicket, setSelectedTicket] =
     useState<CustomerTransaction | null>(null);
+  const [reviewTicket, setReviewTicket] =
+    useState<CustomerTransaction | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
-    const updateCurrentTime = () => setCurrentTime(Date.now());
+    const updateCurrentTime = () => setCurrentTime(getJakartaWallClockNow());
     updateCurrentTime();
     const intervalId = window.setInterval(updateCurrentTime, 60_000);
     return () => window.clearInterval(intervalId);
@@ -433,10 +647,10 @@ const MyTickets = ({
   const displayedTickets = useMemo(() => {
     return completedTickets
       .filter((transaction) => {
-        const startsAt = new Date(transaction.event.startDate).getTime();
+        const endsAt = new Date(transaction.event.endDate).getTime();
         return period === "upcoming"
-          ? startsAt >= currentTime
-          : startsAt < currentTime;
+          ? endsAt >= currentTime
+          : endsAt < currentTime;
       })
       .sort((first, second) => {
         const firstDate = new Date(first.event.startDate).getTime();
@@ -449,7 +663,7 @@ const MyTickets = ({
 
   const upcomingCount = completedTickets.filter(
     (transaction) =>
-      new Date(transaction.event.startDate).getTime() >= currentTime,
+      new Date(transaction.event.endDate).getTime() >= currentTime,
   ).length;
   const pastCount = completedTickets.length - upcomingCount;
 
@@ -496,6 +710,11 @@ const MyTickets = ({
               key={ticket.id}
               ticket={ticket}
               onOpen={() => setSelectedTicket(ticket)}
+              onReview={
+                period === "past"
+                  ? () => setReviewTicket(ticket)
+                  : undefined
+              }
             />
           ))}
         </div>
@@ -521,6 +740,13 @@ const MyTickets = ({
           onClose={() => setSelectedTicket(null)}
         />
       )}
+
+      {reviewTicket && (
+        <ReviewModal
+          ticket={reviewTicket}
+          onClose={() => setReviewTicket(null)}
+        />
+      )}
     </>
   );
 };
@@ -543,7 +769,7 @@ const OrderCard = ({ order }: { order: CustomerTransaction }) => {
               {order.event.eventName}
             </h3>
             <p className="mt-1 text-xs text-zinc-500">
-              Ordered {formatShortDate(order.createdAt)}
+              Ordered {formatInstant(order.createdAt)}
             </p>
           </div>
         </div>

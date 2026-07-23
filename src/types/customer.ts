@@ -25,6 +25,10 @@ export interface CustomerTransaction {
     endDate: string;
     price: number;
     thumbnail: string | null;
+    organizer: {
+      id: number;
+      organizerName: string;
+    };
   };
   voucher: {
     code: string;
@@ -33,6 +37,12 @@ export interface CustomerTransaction {
   coupon: {
     code: string;
     discount: number;
+  } | null;
+  review: {
+    id: number;
+    rating: number;
+    comment: string | null;
+    createdAt: string;
   } | null;
 }
 

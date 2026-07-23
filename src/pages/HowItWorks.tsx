@@ -5,11 +5,10 @@ import {
   CalendarPlus,
   CheckCircle2,
   CreditCard,
-  MessageSquare,
   PartyPopper,
   Search,
   Ticket,
-  UserCheck,
+  UserPlus,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -51,22 +50,22 @@ const customerSteps: Step[] = [
 
 const organizerSteps: Step[] = [
   {
-    icon: MessageSquare,
-    title: "Contact the organizer",
+    icon: UserPlus,
+    title: "Sign up as an organizer",
     description:
-      "Reach out to the Evora team and apply to become an organizer on the platform.",
-  },
-  {
-    icon: UserCheck,
-    title: "Get approved",
-    description:
-      "Once your application is reviewed and accepted, your organizer account is unlocked.",
+      "Create an account and simply choose 'Event Organizer' when you register. No approval needed — you're ready right away.",
   },
   {
     icon: CalendarPlus,
     title: "Create your event",
     description:
-      "Set up your event, publish it and start selling tickets to your audience right away.",
+      "Set up your event details, upload your poster and publish it in just a few minutes.",
+  },
+  {
+    icon: Ticket,
+    title: "Sell tickets",
+    description:
+      "Share your event, start selling tickets and reach thousands of attendees on Evora.",
   },
 ];
 
@@ -154,7 +153,7 @@ const HowItWorks = () => {
           <p className="mt-3 text-[15px] leading-relaxed text-[#52525b]">
             {audience === "customer"
               ? "Search, buy, pay, and you're in. No hassle, no queues."
-              : "Become a verified organizer and bring your event to life."}
+              : "Sign up as an organizer and bring your event to life."}
           </p>
         </div>
 
@@ -189,10 +188,10 @@ const HowItWorks = () => {
                 </Button>
               </Link>
             ) : (
-              <Link to="#">
+              <Link to="/register">
                 <Button className="h-12 rounded-xl bg-white px-7 text-base font-semibold text-[#6d28d9] shadow-sm hover:bg-[#f3edff]">
-                  <MessageSquare className="size-5" />
-                  Contact organizer
+                  <UserPlus className="size-5" />
+                  Sign up as organizer
                 </Button>
               </Link>
             )}
@@ -200,7 +199,7 @@ const HowItWorks = () => {
           {audience === "organizer" && (
             <p className="mt-6 flex items-center justify-center gap-2 text-sm text-white/70">
               <CheckCircle2 className="size-4" />
-              Applications are usually reviewed within a few business days.
+              It's free to get started — no application or approval required.
             </p>
           )}
         </div>

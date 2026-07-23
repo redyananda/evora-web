@@ -4,15 +4,27 @@ import { Link } from "react-router";
 const footerLinks = [
   {
     title: "Company",
-    links: ["About Us", "Careers", "Contact"],
+    links: [
+      { label: "About Us", to: "/about" },
+      { label: "Careers", to: "/careers" },
+      { label: "Contact", to: "/contact" },
+    ],
   },
   {
     title: "Support",
-    links: ["Help Center", "Safety", "Guides"],
+    links: [
+      { label: "Help Center", to: "/help" },
+      { label: "Safety", to: "/safety" },
+      { label: "Guides", to: "/guides" },
+    ],
   },
   {
     title: "Legal",
-    links: ["Privacy Policy", "Terms of Service", "Cookie Policy"],
+    links: [
+      { label: "Privacy Policy", to: "/privacy" },
+      { label: "Terms of Service", to: "/terms" },
+      { label: "Cookie Policy", to: "/cookies" },
+    ],
   },
 ];
 
@@ -57,12 +69,12 @@ const Footer = () => {
                 </h3>
                 <ul className="mt-5 space-y-4">
                   {column.links.map((link) => (
-                    <li key={link}>
+                    <li key={link.label}>
                       <Link
-                        to="#"
+                        to={link.to}
                         className="text-[15px] text-[#52525b] transition-colors hover:text-[#6d28d9]"
                       >
-                        {link}
+                        {link.label}
                       </Link>
                     </li>
                   ))}

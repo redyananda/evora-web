@@ -16,6 +16,7 @@ export interface Event {
     updatedAt: string;
     slug: string;
     organizer: {
+        id: number;
         organizerName: string;
         organizerLogo: string;
         rating: number;

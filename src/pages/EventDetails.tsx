@@ -171,7 +171,10 @@ const EventDetails = () => {
             </div>
 
             {/* Organizer */}
-            <div className="flex items-center justify-between rounded-2xl bg-white p-6 shadow-sm">
+            <Link
+              to={`/organizers/${event.organizer.id}`}
+              className="flex items-center justify-between rounded-2xl bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
               <div className="flex items-center gap-4">
                 <img
                   src={event.organizer.organizerLogo || "/navLogo.webp"}
@@ -179,7 +182,7 @@ const EventDetails = () => {
                   className="size-14 rounded-xl object-contain p-2 ring-1 ring-[#efe7ff]"
                 />
                 <div>
-                  <h3 className="font-heading text-lg font-bold text-[#1e1b2e]">
+                  <h3 className="font-heading text-lg font-bold text-[#1e1b2e] transition-colors hover:text-[#6d28d9]">
                     {event.organizer.organizerName}
                   </h3>
                   <div className="mt-1.5 flex items-center gap-1.5">
@@ -204,7 +207,7 @@ const EventDetails = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* Location */}
             <div className="rounded-2xl bg-white p-6 shadow-sm md:p-8">

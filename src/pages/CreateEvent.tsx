@@ -114,10 +114,18 @@ const CreateEvent = () => {
     resolver: zodResolver(createEventSchema),
   });
 
+  // A `datetime-local` input yields a timezone-less wall-clock string
+  // ("2026-08-06T03:00"). The whole app renders dates in UTC, so we tag the
+  // value as UTC here — that way the time the organizer typed is stored and
+  // shown verbatim, instead of being shifted by the server's local timezone.
+  const toUtcISO = (local: string) => `${local}${local.length === 16 ? ":00" : ""}Z`;
+
   const onSubmit = (values: CreateEventFormValues) => {
     createEvent(
       {
         ...values,
+        startDate: toUtcISO(values.startDate),
+        endDate: toUtcISO(values.endDate),
         price: Number(values.price),
         totalSeats: Number(values.totalSeats),
         thumbnail: values.thumbnail as File,

@@ -26,11 +26,11 @@ const categories: Array<{ value: EventCategory; label: string }> = [
   { value: "WELLNESS", label: "Wellness" },
 ];
 
-const toLocalInput = (value: string) => {
-  const date = new Date(value);
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-};
+// Dates are stored and displayed as UTC across the app, so the datetime-local
+// input works with the raw UTC wall-clock — no local-timezone shift, otherwise
+// the edit form would show a different time than the event detail page.
+const toLocalInput = (value: string) => new Date(value).toISOString().slice(0, 16);
+const toUtcISO = (local: string) => `${local}${local.length === 16 ? ":00" : ""}Z`;
 
 const EventFormModal = ({ event, onClose }: EventFormModalProps) => {
   const [form, setForm] = useState<EventFormPayload>(() => ({
@@ -62,8 +62,8 @@ const EventFormModal = ({ event, onClose }: EventFormModalProps) => {
         id: event.id,
         payload: {
           ...form,
-          startDate: new Date(form.startDate).toISOString(),
-          endDate: new Date(form.endDate).toISOString(),
+          startDate: toUtcISO(form.startDate),
+          endDate: toUtcISO(form.endDate),
           thumbnail: form.thumbnail?.trim() || null,
         },
       },

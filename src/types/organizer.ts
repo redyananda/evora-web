@@ -45,6 +45,28 @@ export interface OrganizerDashboardData {
   }>;
 }
 
+export interface OrganizerReview {
+  id: number;
+  name: string;
+  avatar: string | null;
+  rating: number;
+  comment: string | null;
+  eventName: string;
+  createdAt: string;
+}
+
+export interface OrganizerProfile {
+  id: number;
+  organizerName: string;
+  organizerDescription: string | null;
+  organizerLogo: string | null;
+  rating: number;
+  totalReviews: number;
+  totalEvents: number;
+  createdAt: string;
+  reviews: OrganizerReview[];
+}
+
 export interface OrganizerEvent {
   id: number;
   eventName: string;

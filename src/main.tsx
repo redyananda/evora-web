@@ -23,6 +23,10 @@ const router = createBrowserRouter([
     lazy: async () => ({ Component: (await import("./pages/EventDetails")).default }),
   },
   {
+    path: "/organizers/:id",
+    lazy: async () => ({ Component: (await import("./pages/OrganizerProfile")).default }),
+  },
+  {
     path: "/how-it-works",
     lazy: async () => ({ Component: (await import("./pages/HowItWorks")).default }),
   },

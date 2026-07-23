@@ -7,7 +7,13 @@ import {
 } from "@/components/ui/input-group";
 import { SearchIcon, TicketIcon } from "lucide-react";
 
-const Hero = () => {
+interface HeroProps {
+  search: string;
+  setSearch: (value: string) => void;
+  onSubmit?: () => void;
+}
+
+const Hero = ({ search, setSearch, onSubmit }: HeroProps) => {
   return (
     <section className="relative overflow-hidden bg-[#f7f1ff]">
       <div className="pointer-events-none absolute -right-24 top-40 h-96 w-96 rounded-full bg-[#c4b5fd]/30 blur-3xl" />
@@ -27,21 +33,33 @@ const Hero = () => {
           </p>
 
           <Field className="mt-8 w-full max-w-xl">
-            <InputGroup className="h-14 rounded-2xl border-[#e4d9ff] bg-white shadow-lg shadow-[#6d28d9]/5">
-              <InputGroupAddon align="inline-start">
-                <SearchIcon className="text-[#8b8b95]" />
-              </InputGroupAddon>
-              <InputGroupInput
-                id="hero-search-input"
-                className="text-base"
-                placeholder="Search by event name, city or category..."
-              />
-              <InputGroupAddon align="inline-end">
-                <Button className="rounded-xl bg-[#6d28d9] px-6 text-[15px] font-semibold text-white shadow-sm hover:bg-[#5b21b6]">
-                  Search
-                </Button>
-              </InputGroupAddon>
-            </InputGroup>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                onSubmit?.();
+              }}
+            >
+              <InputGroup className="h-14 rounded-2xl border-[#e4d9ff] bg-white shadow-lg shadow-[#6d28d9]/5">
+                <InputGroupAddon align="inline-start">
+                  <SearchIcon className="text-[#8b8b95]" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="hero-search-input"
+                  className="text-base"
+                  placeholder="Search by event name, city or category..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <InputGroupAddon align="inline-end">
+                  <Button
+                    type="submit"
+                    className="rounded-xl bg-[#6d28d9] px-6 text-[15px] font-semibold text-white shadow-sm hover:bg-[#5b21b6]"
+                  >
+                    Search
+                  </Button>
+                </InputGroupAddon>
+              </InputGroup>
+            </form>
           </Field>
         </div>
 

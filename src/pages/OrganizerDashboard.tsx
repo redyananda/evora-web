@@ -5,6 +5,7 @@ import {
   CalendarRange,
   LayoutDashboard,
   ReceiptText,
+  TicketPercent,
   UserRound,
   Users,
 } from "lucide-react";
@@ -12,15 +13,17 @@ import EventsPanel from "@/components/organizer/EventsPanel";
 import ParticipantsPanel from "@/components/organizer/ParticipantsPanel";
 import StatisticsPanel from "@/components/organizer/StatisticsPanel";
 import TransactionsPanel from "@/components/organizer/TransactionsPanel";
+import VouchersPanel from "@/components/organizer/VouchersPanel";
 import { useOrganizerDashboard } from "@/hooks/api/organizer/useOrganizer";
 import { useAuthStore } from "@/store/auth.store";
 import type { StatisticPeriod } from "@/types/organizer";
 
-type DashboardTab = "overview" | "events" | "transactions" | "participants";
+type DashboardTab = "overview" | "events" | "promotions" | "transactions" | "participants";
 
 const tabs: Array<{ key: DashboardTab; label: string; icon: typeof LayoutDashboard }> = [
   { key: "overview", label: "Overview", icon: LayoutDashboard },
   { key: "events", label: "Events", icon: CalendarRange },
+  { key: "promotions", label: "Promotions", icon: TicketPercent },
   { key: "transactions", label: "Transactions", icon: ReceiptText },
   { key: "participants", label: "Participants", icon: Users },
 ];
@@ -86,6 +89,7 @@ const OrganizerDashboard = () => {
           {isError && <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">Dashboard data could not be loaded. Make sure the API is running and your organizer session is valid.</div>}
           {activeTab === "overview" && <StatisticsPanel data={data} isLoading={isLoading} period={period} date={date} onPeriodChange={setPeriod} onDateChange={setDate} />}
           {activeTab === "events" && <EventsPanel />}
+          {activeTab === "promotions" && <VouchersPanel />}
           {activeTab === "transactions" && <TransactionsPanel />}
           {activeTab === "participants" && <ParticipantsPanel />}
         </main>

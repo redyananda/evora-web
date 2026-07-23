@@ -8,6 +8,7 @@ import {
   Plus,
   Share2,
   Star,
+  TicketPercent,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
@@ -15,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import Footer from "@/components/sections/Footer";
 import Navbar from "@/components/sections/Navbar";
 import useGetEventBySlug from "@/hooks/api/event/useGetEventBySlug";
+import useGetEventVouchers from "@/hooks/api/event/useGetEventVouchers";
 import { useAuthStore } from "@/store/auth.store";
 
 const formatIDR = (value: number) =>
@@ -48,6 +50,7 @@ const formatTime = (iso: string) =>
 const EventDetails = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: event, isPending, isError } = useGetEventBySlug(slug ?? "");
+  const { data: vouchers } = useGetEventVouchers(slug ?? "");
   const user = useAuthStore((state) => state.user);
   const [quantity, setQuantity] = useState(1);
 
@@ -245,6 +248,39 @@ const EventDetails = () => {
                   {event.availableSeats} left
                 </span>
               </div>
+
+              {/* Available voucher promotions */}
+              {vouchers && vouchers.length > 0 && (
+                <div className="mt-6 rounded-xl border border-dashed border-[#c4b5fd] bg-[#faf7ff] p-4">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[#6d28d9]">
+                    <TicketPercent className="size-4" />
+                    Available promos
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    {vouchers.map((voucher) => (
+                      <div
+                        key={voucher.id}
+                        className="flex items-center justify-between gap-2 rounded-lg border border-[#e4d9ff] bg-white px-3 py-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-heading text-sm font-bold tracking-wide text-[#1e1b2e]">
+                            {voucher.code}
+                          </p>
+                          <p className="text-xs text-[#71717a]">
+                            {voucher.availableVoucher} left
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-[#ede4ff] px-2.5 py-1 text-xs font-bold text-[#6d28d9]">
+                          -{formatIDR(voucher.discount)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-xs text-[#a1a1aa]">
+                    Apply your code at checkout.
+                  </p>
+                </div>
+              )}
 
               {/* Quantity selector */}
               <div className="mt-6 flex items-center justify-between">

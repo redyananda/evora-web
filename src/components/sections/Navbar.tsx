@@ -62,22 +62,6 @@ const Navbar = () => {
                   {user.userRole === "ORGANIZER" ? "Organizer" : "Customer"}
                 </span>
               </Link>
-              {/* Referral code badge */}
-              {user.referralCode && (
-                <button
-                  type="button"
-                  title="Click to copy the referral code"
-                  onClick={() => {
-                    if (user.referralCode) {
-                      navigator.clipboard.writeText(user.referralCode);
-                      toast.success("Referral code copied!");
-                    }
-                  }}
-                  className="rounded-lg border border-[#e4d9ff] bg-white px-3 py-1.5 text-xs font-mono font-medium text-[#6d28d9] transition-colors hover:bg-[#f3edff]"
-                >
-                  {user.referralCode}
-                </button>
-              )}
               {/* Logout */}
               <Button
                 onClick={handleLogout}
@@ -148,24 +132,6 @@ const Navbar = () => {
                     {user.userRole === "ORGANIZER" ? "Organizer" : "Customer"}
                   </span>
                 </Link>
-                {/* Referral code */}
-                {user.referralCode && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (user.referralCode) {
-                        navigator.clipboard.writeText(user.referralCode);
-                        toast.success("Referral code copied!");
-                      }
-                    }}
-                    className="flex items-center justify-between rounded-lg border border-[#e4d9ff] bg-white px-3 py-2 text-left text-sm"
-                  >
-                    <span className="text-[#71717a]">Referral Code</span>
-                    <span className="font-mono font-medium text-[#6d28d9]">
-                      {user.referralCode}
-                    </span>
-                  </button>
-                )}
                 {/* Logout */}
                 <Button
                   onClick={handleLogout}
